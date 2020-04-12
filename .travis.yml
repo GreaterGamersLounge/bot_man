@@ -2,7 +2,7 @@ language: ruby
 dist: xenial
 os: linux
 rvm:
-  - 2.7.0
+  - 2.6.5
 env:
   - FRONTEND_URL=http://localhost:3000
 
