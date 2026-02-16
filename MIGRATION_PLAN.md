@@ -1,0 +1,535 @@
+# Bot_Man Migration Plan: Ruby/Rails → TypeScript/Discord.js
+
+## Overview
+
+This document outlines the migration plan for converting the Bot_Man Discord bot from Ruby/Rails (using the `discordrb` gem) to TypeScript (using `discord.js`). The migration will maintain PostgreSQL as the database and implement equivalent functionality for all existing commands and event handling.
+
+**Current Stack:**
+- Ruby 2.7+ / Rails 6+
+- discordrb gem
+- PostgreSQL (with JSONB)
+- Sidekiq (Redis-backed job queue)
+- Devise (web authentication)
+
+**Target Stack:**
+- Node.js 22+ / TypeScript 5+
+- discord.js v14
+- PostgreSQL (unchanged)
+- Prisma ORM (database layer)
+- pg-boss (PostgreSQL-backed job queue - no Redis required!)
+
+---
+
+## Technology Decisions & Rationale
+
+### 1. Discord Library: discord.js v14
+
+**Why discord.js?**
+- Most popular and actively maintained Discord library for Node.js
+- Excellent TypeScript support with full type definitions
+- Large community and extensive documentation
+- Node.js 22.12.0+ required (as of v14.25.1)
+
+**Replaces:** `discordrb` gem
+
+### 2. Language: TypeScript
+
+**Why TypeScript over plain JavaScript?**
+- Type safety catches errors at compile time
+- Better IDE support (IntelliSense, refactoring)
+- Industry standard for modern Discord bots
+- Easier maintenance and onboarding
+
+### 3. ORM: Prisma
+
+**Why Prisma?**
+- Excellent developer experience with auto-generated, type-safe client
+- Schema-first workflow similar to Rails migrations
+- Introspection support - can generate schema from existing database
+- Prisma Studio for visual database management
+- Broad adoption and active maintenance
+
+**Alternatives Considered:**
+| ORM | Pros | Cons | Decision |
+|-----|------|------|----------|
+| **Prisma** | Best DX, type safety, introspection | Larger bundle, Rust engine | ✅ Selected |
+| Drizzle | Lightweight, SQL-like syntax | Less mature ecosystem | Good alternative |
+| TypeORM | Decorator-based, familiar to Rails devs | Performance issues, dated | ❌ |
+
+**Replaces:** ActiveRecord
+
+### 4. Background Jobs: pg-boss
+
+**Why pg-boss over BullMQ?**
+- Uses PostgreSQL as backend - **no Redis required!**
+- Already using PostgreSQL, reduces infrastructure complexity
+- Retry logic, dead letter queues built-in
+- Similar API to Sidekiq conceptually
+
+**Alternatives Considered:**
+| Library | Backend | Pros | Cons | Decision |
+|---------|---------|------|------|----------|
+| **pg-boss** | PostgreSQL | No Redis, uses existing DB | Less battle-tested than Bull | ✅ Selected |
+| BullMQ | Redis | Very mature, widely used | Requires Redis | Good if already using Redis |
+| Agenda | MongoDB | Simple API | Wrong DB | ❌ |
+
+**Replaces:** Sidekiq
+
+### 5. Command Style: Slash Commands
+
+**Why Slash Commands over Message Commands?**
+- Discord's recommended approach since 2021
+- Better discoverability (autocomplete in Discord UI)
+- Built-in permissions and rate limiting
+- No need to parse message content
+- Will also support legacy `!` prefix commands for backward compatibility
+
+---
+
+## Database Migration Strategy
+
+### Existing Schema (Rails)
+
+The current PostgreSQL schema includes these tables:
+- `discord_users` - Discord user information (PK: `uid`)
+- `servers` - Discord server/guild information
+- `events` - Raw Discord gateway events (STI with JSONB `data`)
+- `invites` - Invite tracking
+- `invite_discord_users` - Join table for invite usage
+- `quotes` - Quote storage
+- `reaction_roles` - Emoji-to-role mappings
+- `temporary_voice_channels` - Temp voice channel tracking
+- `users` - Web dashboard users (Devise)
+
+### Migration Approach
+
+**Option A: Fresh Start with Prisma Migrate** ❌
+- Would lose existing data
+- Clean schema but requires data migration
+
+**Option B: Prisma Introspection** ✅ RECOMMENDED
+1. Run `prisma db pull` to generate Prisma schema from existing database
+2. Adjust generated schema for optimal TypeScript types
+3. Generate Prisma Client
+4. All existing data preserved
+
+```bash
+# Commands to run
+npx prisma db pull          # Introspect existing DB
+npx prisma generate         # Generate client
+```
+
+---
+
+## Project Structure
+
+```
+bot_man/
+├── src/
+│   ├── index.ts                    # Entry point
+│   ├── bot.ts                      # Discord client setup
+│   ├── deploy-commands.ts          # Slash command registration
+│   │
+│   ├── commands/                   # Slash commands
+│   │   ├── index.ts                # Command loader
+│   │   ├── utility/
+│   │   │   ├── ping.ts
+│   │   │   ├── info.ts
+│   │   │   └── random.ts
+│   │   ├── quotes/
+│   │   │   ├── addquote.ts
+│   │   │   ├── quote.ts
+│   │   │   ├── removequote.ts
+│   │   │   └── allquotes.ts
+│   │   ├── moderation/
+│   │   │   ├── clear.ts
+│   │   │   ├── massmove.ts
+│   │   │   └── set.ts
+│   │   ├── roles/
+│   │   │   ├── addreactionrole.ts
+│   │   │   ├── removereactionrole.ts
+│   │   │   └── removeallreactionroles.ts
+│   │   ├── voice/
+│   │   │   ├── createjumpchannel.ts
+│   │   │   └── deletejumpchannel.ts
+│   │   └── admin/
+│   │       ├── shutdown.ts
+│   │       └── private.ts
+│   │
+│   ├── events/                     # Discord event handlers
+│   │   ├── index.ts                # Event loader
+│   │   ├── ready.ts
+│   │   ├── interactionCreate.ts    # Slash command handler
+│   │   ├── messageCreate.ts        # Legacy prefix commands
+│   │   ├── messageReactionAdd.ts   # Reaction roles
+│   │   ├── messageReactionRemove.ts
+│   │   ├── guildMemberAdd.ts       # Invite tracking
+│   │   ├── guildCreate.ts          # Server sync
+│   │   ├── voiceStateUpdate.ts     # Temp voice channels
+│   │   ├── inviteCreate.ts
+│   │   ├── inviteDelete.ts
+│   │   └── raw.ts                  # Raw event logging
+│   │
+│   ├── jobs/                       # Background jobs (pg-boss)
+│   │   ├── index.ts                # Job queue setup
+│   │   ├── eventLogger.ts          # Async event storage
+│   │   └── worker.ts               # Job processor
+│   │
+│   ├── services/                   # Business logic
+│   │   ├── serverService.ts
+│   │   ├── userService.ts
+│   │   ├── inviteService.ts
+│   │   └── reactionService.ts
+│   │
+│   ├── lib/                        # Utilities
+│   │   ├── database.ts             # Prisma client singleton
+│   │   ├── logger.ts               # Logging utility
+│   │   ├── permissions.ts          # Permission checks
+│   │   └── levenshtein.ts          # Fuzzy matching for massmove
+│   │
+│   └── types/                      # TypeScript types
+│       ├── command.ts
+│       ├── event.ts
+│       └── index.ts
+│
+├── prisma/
+│   ├── schema.prisma               # Database schema
+│   └── migrations/                 # Migration history
+│
+├── scripts/
+│   └── deploy-commands.ts          # Command deployment script
+│
+├── tests/                          # Test files
+│   └── ...
+│
+├── .env                            # Environment variables
+├── .env.example
+├── package.json
+├── tsconfig.json
+├── Dockerfile
+├── docker-compose.yml
+└── Procfile
+```
+
+---
+
+## Command Migration Reference
+
+| Ruby Command | Slash Command | Description | Priority |
+|--------------|---------------|-------------|----------|
+| `!ping` | `/ping` | Bot latency check | 🟢 High |
+| `!addquote` / `!aq` | `/quote add` | Add a quote | 🟢 High |
+| `!quote` / `!q` | `/quote get` | Get random/specific quote | 🟢 High |
+| `!removequote` | `/quote remove` | Remove a quote | 🟢 High |
+| `!allquotes` | `/quote list` | List all quotes | 🟡 Medium |
+| `!addreactionrole` | `/reactionrole add` | Add reaction role | 🟢 High |
+| `!removereactionrole` | `/reactionrole remove` | Remove reaction role | 🟢 High |
+| `!removeallreactionroles` | `/reactionrole clear` | Clear all reaction roles | 🟡 Medium |
+| `!clear` | `/clear` | Bulk delete messages | 🟢 High |
+| `!massmove` / `!mm` | `/massmove` | Move users between voice channels | 🟡 Medium |
+| `!random` | `/random` | Generate random number | 🟢 High |
+| `!set` | `/set` | Update server settings | 🟡 Medium |
+| `!createjumpchannel` | `/jumpchannel create` | Create temp voice trigger | 🟡 Medium |
+| `!deletejumpchannel` | `/jumpchannel delete` | Delete temp voice trigger | 🟡 Medium |
+| `!me` | `/me` | Show username | 🟢 High |
+| `!invite` | `/invite` | Bot invite URL | 🟢 High |
+| `!dm` | `/dm` | Send DM to user | 🔴 Low |
+| `!shutdown` | `/shutdown` | Shutdown bot (owner only) | 🔴 Low |
+| `!test` | (remove) | Debug command | ❌ Remove |
+| 📖 Reaction Quote | (keep) | Quote via emoji reaction | 🟢 High |
+
+---
+
+## Event Migration Reference
+
+| Ruby Event | discord.js Event | Handler Purpose |
+|------------|------------------|-----------------|
+| `raw` | `raw` | Store all events to DB via pg-boss |
+| `ready` | `ready` | Bot startup, invite cache |
+| `server_create` | `guildCreate` | Sync server info |
+| `member_join` | `guildMemberAdd` | Invite tracking |
+| `reaction_add` | `messageReactionAdd` | Reaction roles + quote via reaction |
+| `reaction_remove` | `messageReactionRemove` | Reaction role removal |
+| `voice_state_update` | `voiceStateUpdate` | Temp voice channel management |
+| `invite_create` | `inviteCreate` | Track new invites |
+| `invite_delete` | `inviteDelete` | Track deleted invites |
+| `message` | `messageCreate` | Legacy prefix commands |
+
+---
+
+## Environment Variables
+
+```env
+# Discord
+BOTMAN_BOT_TOKEN=           # Discord bot token
+DISCORD_CLIENT_ID=          # Application client ID
+DISCORD_CLIENT_SECRET=      # OAuth client secret (for web dashboard)
+
+# Database
+DATABASE_URL=               # PostgreSQL connection string
+
+# Application
+NODE_ENV=development        # development | production
+IS_DEV=true                 # Enable dev features (invite URL logging)
+
+# Optional: Web Dashboard
+FRONTEND_URL=               # Frontend app URL for CORS
+```
+
+---
+
+## Migration Phases
+
+### Phase 1: Project Setup (Week 1)
+- [ ] Initialize Node.js/TypeScript project
+- [ ] Configure ESLint, Prettier
+- [ ] Set up Prisma with database introspection
+- [ ] Create basic discord.js client
+- [ ] Set up pg-boss for background jobs
+- [ ] Create project structure
+- [ ] Configure Docker/Procfile
+
+### Phase 2: Core Infrastructure (Week 1-2)
+- [ ] Implement command handler (slash + legacy prefix)
+- [ ] Implement event handler
+- [ ] Set up raw event logging via pg-boss
+- [ ] Implement database service layer
+- [ ] Create utility functions (permissions, logging)
+
+### Phase 3: Command Migration (Week 2-3)
+- [ ] Migrate `/ping` command
+- [ ] Migrate `/quote` commands (add, get, remove, list)
+- [ ] Migrate `/reactionrole` commands
+- [ ] Migrate `/clear` command
+- [ ] Migrate `/massmove` command
+- [ ] Migrate `/random` command
+- [ ] Migrate `/set` command
+- [ ] Migrate `/jumpchannel` commands
+- [ ] Migrate utility commands (me, invite)
+- [ ] Migrate admin commands (shutdown, dm)
+
+### Phase 4: Event Handler Migration (Week 3-4)
+- [ ] Implement ready event (with invite caching)
+- [ ] Implement guildCreate (server sync)
+- [ ] Implement guildMemberAdd (invite tracking)
+- [ ] Implement messageReactionAdd/Remove (reaction roles)
+- [ ] Implement voiceStateUpdate (temp voice channels)
+- [ ] Implement invite create/delete tracking
+- [ ] Implement quote-via-reaction feature
+
+### Phase 5: Testing & Refinement (Week 4)
+- [ ] Write unit tests for services
+- [ ] Write integration tests for commands
+- [ ] Test all commands in development server
+- [ ] Performance testing
+- [ ] Error handling review
+- [ ] Logging review
+
+### Phase 6: Deployment & Cutover (Week 5)
+- [ ] Set up production environment
+- [ ] Deploy to staging
+- [ ] Final testing in staging
+- [ ] Document deployment process
+- [ ] Cutover plan
+- [ ] Monitor post-deployment
+
+---
+
+## Library Reference
+
+### Core Dependencies
+
+```json
+{
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "@prisma/client": "^6.x",
+    "pg-boss": "^10.x",
+    "dotenv": "^16.x",
+    "winston": "^3.x"
+  },
+  "devDependencies": {
+    "typescript": "^5.x",
+    "prisma": "^6.x",
+    "@types/node": "^22.x",
+    "tsx": "^4.x",
+    "eslint": "^9.x",
+    "prettier": "^3.x",
+    "vitest": "^2.x"
+  }
+}
+```
+
+### Library Mapping: Ruby → TypeScript
+
+| Ruby/Rails | TypeScript/Node | Purpose |
+|------------|-----------------|---------|
+| discordrb | discord.js | Discord API client |
+| ActiveRecord | Prisma | ORM / Database |
+| Sidekiq | pg-boss | Background jobs |
+| Rails environment | dotenv | Environment config |
+| Rails logger | winston | Logging |
+| RSpec | vitest | Testing |
+| Puma | Built-in | HTTP server (if needed) |
+| Devise | (separate) | Web auth (future) |
+
+---
+
+## Key Implementation Notes
+
+### 1. Slash Command Registration
+
+Discord requires slash commands to be registered before use:
+
+```typescript
+// deploy-commands.ts
+import { REST, Routes } from 'discord.js';
+
+const commands = [/* command data */];
+const rest = new REST().setToken(process.env.BOTMAN_BOT_TOKEN!);
+
+// Register globally (takes up to 1 hour to propagate)
+await rest.put(Routes.applicationCommands(clientId), { body: commands });
+
+// OR register per-guild (instant, good for development)
+await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+```
+
+### 2. Maintaining Legacy Prefix Commands
+
+For backward compatibility during migration:
+
+```typescript
+// events/messageCreate.ts
+client.on('messageCreate', async (message) => {
+  if (!message.content.startsWith('!')) return;
+
+  const args = message.content.slice(1).trim().split(/ +/);
+  const commandName = args.shift()?.toLowerCase();
+
+  // Map to equivalent slash command handler
+  // This allows gradual migration
+});
+```
+
+### 3. Raw Event Logging with pg-boss
+
+```typescript
+// events/raw.ts
+import PgBoss from 'pg-boss';
+
+const boss = new PgBoss(process.env.DATABASE_URL!);
+
+client.on('raw', async (packet) => {
+  await boss.send('event-log', {
+    type: `Events::${pascalCase(packet.t)}Event`,
+    data: packet.d,
+  });
+});
+
+// worker.ts
+boss.work('event-log', async ([job]) => {
+  await prisma.event.create({
+    data: {
+      type: job.data.type,
+      data: job.data.data,
+    },
+  });
+});
+```
+
+### 4. Invite Tracking Pattern
+
+```typescript
+// Maintain invite cache per guild
+const inviteCache = new Map<string, Map<string, number>>();
+
+client.on('ready', async () => {
+  for (const guild of client.guilds.cache.values()) {
+    const invites = await guild.invites.fetch();
+    inviteCache.set(guild.id, new Map(invites.map(i => [i.code, i.uses ?? 0])));
+  }
+});
+
+client.on('guildMemberAdd', async (member) => {
+  const cachedInvites = inviteCache.get(member.guild.id);
+  const newInvites = await member.guild.invites.fetch();
+
+  // Find which invite was used by comparing uses
+  const usedInvite = newInvites.find(i =>
+    (cachedInvites?.get(i.code) ?? 0) < (i.uses ?? 0)
+  );
+
+  // Update cache and record in database
+});
+```
+
+---
+
+## Risks & Mitigations
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Data loss during migration | High | Use Prisma introspection (no schema changes) |
+| Command registration delays | Medium | Use guild-specific registration during dev |
+| Missing functionality | Medium | Comprehensive testing checklist |
+| pg-boss reliability | Medium | Monitor job queue, implement dead letter handling |
+| Discord.js breaking changes | Low | Pin versions, review changelogs |
+
+---
+
+## Post-Migration Cleanup
+
+After successful migration and verification:
+
+1. **Remove Ruby/Rails files:**
+   - `Gemfile`, `Gemfile.lock`
+   - `app/`, `lib/bot/`, `config/` (Rails-specific)
+   - `bin/` (Rails scripts)
+   - `Rakefile`, `config.ru`
+
+2. **Update CI/CD:**
+   - Change from Ruby to Node.js
+   - Update Docker images
+   - Update Procfile (already planned)
+
+3. **Documentation:**
+   - Update README.md
+   - Document new command syntax
+   - Document deployment process
+
+---
+
+## New Procfile
+
+```procfile
+web: npm run start:web
+bot: npm run start:bot
+worker: npm run start:worker
+release: npx prisma migrate deploy
+```
+
+---
+
+## Questions to Address Before Starting
+
+1. **Web Dashboard:** Will the Rails web dashboard also be migrated, or remain as a separate Ruby app?
+2. **OAuth:** Is Discord OAuth login still needed for the web dashboard?
+3. **Hosting:** Where is this currently deployed? (Heroku, Railway, VPS?)
+4. **Timeline:** What's the target completion date?
+5. **Testing Server:** Is there a development Discord server for testing?
+
+---
+
+## Approval Checklist
+
+- [ ] Technology stack approved (discord.js, Prisma, pg-boss)
+- [ ] Project structure approved
+- [ ] Command mapping approved
+- [ ] Migration phases approved
+- [ ] Timeline agreed upon
+
+---
+
+*Document created: February 16, 2026*
+*Last updated: February 16, 2026*
