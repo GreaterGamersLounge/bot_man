@@ -213,6 +213,219 @@ bot_man/
 
 ---
 
+## Local Development with Docker Compose
+
+Docker Compose provides a consistent local development environment with PostgreSQL and all services.
+
+### docker-compose.yml
+
+```yaml
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: botman-postgres
+    environment:
+      POSTGRES_USER: botman
+      POSTGRES_PASSWORD: botman_dev
+      POSTGRES_DB: botman_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d  # Optional: init scripts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U botman -d botman_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Discord Bot
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: botman-bot
+    command: npm run dev:bot
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://botman:botman_dev@postgres:5432/botman_development
+      BOTMAN_BOT_TOKEN: ${BOTMAN_BOT_TOKEN}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      IS_DEV: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Background Job Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: botman-worker
+    command: npm run dev:worker
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://botman:botman_dev@postgres:5432/botman_development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Prisma Studio (Database GUI) - Optional
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: botman-prisma-studio
+    command: npx prisma studio
+    environment:
+      DATABASE_URL: postgresql://botman:botman_dev@postgres:5432/botman_development
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tools  # Only starts with: docker compose --profile tools up
+
+volumes:
+  postgres_data:
+```
+
+### Dockerfile (Multi-stage)
+
+```dockerfile
+# Base stage
+FROM node:22-alpine AS base
+WORKDIR /app
+COPY package*.json ./
+
+# Development stage
+FROM base AS development
+RUN npm install
+COPY . .
+RUN npx prisma generate
+CMD ["npm", "run", "dev"]
+
+# Build stage
+FROM base AS build
+RUN npm ci
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+
+# Production stage
+FROM node:22-alpine AS production
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/prisma ./prisma
+ENV NODE_ENV=production
+CMD ["node", "dist/index.js"]
+```
+
+### Local Development Commands
+
+```bash
+# Start all services (first time)
+docker compose up -d
+
+# Start with Prisma Studio
+docker compose --profile tools up -d
+
+# View logs
+docker compose logs -f bot
+docker compose logs -f worker
+
+# Run database migrations
+docker compose exec bot npx prisma migrate dev
+
+# Generate Prisma client after schema changes
+docker compose exec bot npx prisma generate
+
+# Open Prisma Studio (if not using profile)
+docker compose exec bot npx prisma studio
+
+# Deploy slash commands
+docker compose exec bot npm run deploy-commands
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (fresh start)
+docker compose down -v
+
+# Rebuild after Dockerfile changes
+docker compose build --no-cache
+```
+
+### .env.example
+
+```env
+# Discord Bot Configuration
+BOTMAN_BOT_TOKEN=your_bot_token_here
+DISCORD_CLIENT_ID=your_client_id_here
+DISCORD_CLIENT_SECRET=your_client_secret_here
+
+# Database (for local development without Docker)
+DATABASE_URL=postgresql://botman:botman_dev@localhost:5432/botman_development
+
+# Environment
+NODE_ENV=development
+IS_DEV=true
+
+# Optional: Web Dashboard
+FRONTEND_URL=http://localhost:3000
+```
+
+### Development Workflow
+
+1. **Initial Setup:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Discord bot token
+   docker compose up -d
+   docker compose exec bot npx prisma migrate dev
+   docker compose exec bot npm run deploy-commands
+   ```
+
+2. **Daily Development:**
+   ```bash
+   docker compose up -d
+   docker compose logs -f bot  # Watch bot logs
+   ```
+
+3. **After Schema Changes:**
+   ```bash
+   docker compose exec bot npx prisma migrate dev --name describe_change
+   ```
+
+4. **Testing Commands:**
+   - Use a dedicated test Discord server
+   - Deploy commands to test guild for instant updates:
+     ```bash
+     docker compose exec bot npm run deploy-commands:guild
+     ```
+
+---
+
 ## Command Migration Reference
 
 | Ruby Command | Slash Command | Description | Priority |
@@ -508,6 +721,180 @@ bot: npm run start:bot
 worker: npm run start:worker
 release: npx prisma migrate deploy
 ```
+
+---
+
+## Future Enhancements & Production Deployment
+
+### Recommended Production Hosting Options
+
+| Platform | Pros | Cons | Cost | Best For |
+|----------|------|------|------|----------|
+| **Railway** ⭐ | Easy deploy, built-in PostgreSQL, auto-scaling, excellent DX | Newer platform | ~$5-20/mo | Small-medium bots |
+| **Render** | Free tier, managed PostgreSQL, automatic deploys | Cold starts on free tier | Free-$25/mo | Budget-conscious |
+| **Fly.io** | Global edge deployment, generous free tier, great performance | More complex setup | Free-$10/mo | Performance-focused |
+| **DigitalOcean App Platform** | Simple, predictable pricing, managed DB | Less flexible | ~$12-24/mo | Simplicity |
+| **AWS (ECS/Fargate)** | Enterprise-grade, highly scalable | Complex, expensive | $30+/mo | Large scale |
+| **Self-hosted VPS** | Full control, cheapest at scale | Maintenance burden | $5-20/mo | Full control |
+
+### Recommended: Railway
+
+**Why Railway?**
+- One-click PostgreSQL provisioning
+- Automatic deployments from GitHub
+- Built-in environment variable management
+- Easy horizontal scaling
+- Excellent logging and monitoring
+- Supports multiple services (bot, worker) in one project
+- Pay-per-use pricing
+
+**Railway Setup:**
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and initialize
+railway login
+railway init
+
+# Add PostgreSQL
+railway add --plugin postgresql
+
+# Deploy
+railway up
+```
+
+**Railway Service Configuration:**
+```toml
+# railway.toml
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "npm run start:bot"
+healthcheckPath = "/health"
+restartPolicyType = "always"
+```
+
+### Alternative: Fly.io
+
+**Fly.io Setup:**
+```bash
+# Install flyctl
+curl -L https://fly.io/install.sh | sh
+
+# Login and launch
+fly auth login
+fly launch
+
+# Create PostgreSQL
+fly postgres create
+fly postgres attach
+
+# Deploy
+fly deploy
+```
+
+**fly.toml:**
+```toml
+app = "botman"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+```
+
+### Production Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Production Environment                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
+│  │   Bot        │    │   Worker     │    │   Web API    │       │
+│  │   Service    │    │   Service    │    │   (optional) │       │
+│  │              │    │              │    │              │       │
+│  │  discord.js  │    │   pg-boss    │    │   Express    │       │
+│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘       │
+│         │                   │                   │               │
+│         └───────────────────┼───────────────────┘               │
+│                             │                                   │
+│                    ┌────────▼────────┐                          │
+│                    │   PostgreSQL    │                          │
+│                    │   (Managed)     │                          │
+│                    └─────────────────┘                          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Production Checklist
+
+- [ ] **Database:**
+  - [ ] Use managed PostgreSQL (Railway, Render, Supabase, Neon)
+  - [ ] Enable connection pooling
+  - [ ] Set up automated backups
+  - [ ] Configure SSL connections
+
+- [ ] **Bot Service:**
+  - [ ] Set `NODE_ENV=production`
+  - [ ] Configure proper logging (structured JSON)
+  - [ ] Set up health checks
+  - [ ] Configure restart policies
+
+- [ ] **Monitoring:**
+  - [ ] Set up error tracking (Sentry)
+  - [ ] Configure uptime monitoring (UptimeRobot, Better Uptime)
+  - [ ] Set up Discord webhook for alerts
+  - [ ] Monitor database performance
+
+- [ ] **Security:**
+  - [ ] Store secrets in environment variables
+  - [ ] Rotate bot token if compromised
+  - [ ] Enable 2FA on Discord developer account
+  - [ ] Restrict database access by IP
+
+### Future Feature Ideas
+
+| Feature | Description | Complexity |
+|---------|-------------|------------|
+| **Dashboard Migration** | Migrate Rails web dashboard to Next.js/React | High |
+| **Slash Command Autocomplete** | Add autocomplete for quote search, channel names | Medium |
+| **Scheduled Messages** | Schedule announcements/reminders | Medium |
+| **Audit Logging** | Log all bot actions to a channel | Low |
+| **Multi-language Support** | i18n for command responses | Medium |
+| **Premium Features** | Patreon integration for advanced features | High |
+| **Analytics Dashboard** | Server stats, command usage metrics | Medium |
+| **Custom Commands** | Per-server custom command creation | High |
+| **Music Playback** | Voice channel music (requires additional libs) | High |
+| **Leveling System** | XP and levels for server members | Medium |
+
+### Cost Estimation (Monthly)
+
+| Component | Railway | Render | Fly.io | Self-hosted |
+|-----------|---------|--------|--------|-------------|
+| Bot Service | $5-10 | $7 | $0-5 | $5 |
+| Worker Service | $5-10 | $7 | $0-5 | included |
+| PostgreSQL (1GB) | $5 | $7 | $0 (shared) | included |
+| **Total** | **$15-25** | **$21** | **$0-10** | **$5-10** |
+
+*Note: Costs vary based on usage. Free tiers may have limitations (cold starts, sleep after inactivity).*
 
 ---
 
