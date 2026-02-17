@@ -52,6 +52,9 @@ bower.json
 # Ignore node_modules
 node_modules/
 
+# TypeScript build output
+dist/
+
 # Ignore precompiled javascript packs
 /public/packs
 /public/packs-test
