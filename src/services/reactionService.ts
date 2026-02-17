@@ -109,6 +109,13 @@ export class ReactionService {
   }
 
   /**
+   * Get all reaction roles for a message (alias)
+   */
+  static async getReactionRolesForMessage(messageId: bigint) {
+    return this.getReactionRoles(messageId);
+  }
+
+  /**
    * Check if a message has any reaction roles
    */
   static async hasReactionRoles(messageId: bigint): Promise<boolean> {

@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction, Interaction } from 'discord.js';
+import type { AutocompleteInteraction, ChatInputCommandInteraction, Interaction } from 'discord.js';
 import type { BotClient } from '../bot.js';
 import { logger } from '../lib/logger.js';
 import { checkCommandPermissions } from '../lib/permissions.js';
@@ -14,8 +14,13 @@ const event: BotEvent<'interactionCreate'> = {
       return;
     }
 
+    // Handle autocomplete
+    if (interaction.isAutocomplete()) {
+      await handleAutocomplete(client, interaction);
+      return;
+    }
+
     // TODO: Handle other interaction types
-    // - Autocomplete
     // - Buttons
     // - Select menus
     // - Modals
@@ -70,6 +75,26 @@ async function handleSlashCommand(
     } else {
       await interaction.reply(errorMessage);
     }
+  }
+}
+
+/**
+ * Handle autocomplete interactions
+ */
+async function handleAutocomplete(
+  client: BotClient,
+  interaction: AutocompleteInteraction
+): Promise<void> {
+  const command = client.slashCommands.get(interaction.commandName);
+
+  if (!command?.autocomplete) {
+    return;
+  }
+
+  try {
+    await command.autocomplete(interaction);
+  } catch (error) {
+    logger.error(`Error handling autocomplete for /${interaction.commandName}:`, error);
   }
 }
 

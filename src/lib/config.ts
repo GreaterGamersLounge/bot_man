@@ -38,13 +38,22 @@ export function loadConfig(): BotConfig {
 /**
  * Get the bot configuration (lazy loaded singleton)
  */
-let config: BotConfig | null = null;
+let configInstance: BotConfig | null = null;
 
 export function getConfig(): BotConfig {
-  if (!config) {
-    config = loadConfig();
+  if (!configInstance) {
+    configInstance = loadConfig();
   }
-  return config;
+  return configInstance;
 }
+
+/**
+ * Named export for config (lazy loaded)
+ */
+export const config = new Proxy({} as BotConfig, {
+  get(_, prop: keyof BotConfig) {
+    return getConfig()[prop];
+  },
+});
 
 export default getConfig;

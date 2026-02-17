@@ -1,4 +1,5 @@
 import type {
+    AutocompleteInteraction,
     ChatInputCommandInteraction,
     Message,
     PermissionResolvable,
@@ -15,6 +16,8 @@ export interface SlashCommand {
   data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | any;
   /** The function to execute when the command is invoked */
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  /** Optional autocomplete handler */
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
   /** Optional cooldown in seconds */
   cooldown?: number;
   /** Required permissions to use this command */
@@ -33,6 +36,8 @@ export interface PrefixCommand {
   aliases?: string[];
   /** Brief description of what the command does */
   description: string;
+  /** Usage information */
+  usage?: string;
   /** The function to execute when the command is invoked */
   execute: (message: Message, args: string[]) => Promise<void>;
   /** Required permissions to use this command */

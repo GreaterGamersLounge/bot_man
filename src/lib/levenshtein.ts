@@ -68,3 +68,8 @@ export function findBestMatch(
 
   return { match: bestMatch, score: bestScore };
 }
+
+/**
+ * Alias for levenshteinDistance for backward compatibility
+ */
+export const levenshtein = levenshteinDistance;
