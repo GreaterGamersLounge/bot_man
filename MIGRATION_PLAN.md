@@ -901,20 +901,25 @@ primary_region = "ord"
 ## Questions to Address Before Starting
 
 1. **Web Dashboard:** Will the Rails web dashboard also be migrated, or remain as a separate Ruby app?
+  - No, it will remain separate for now.
 2. **OAuth:** Is Discord OAuth login still needed for the web dashboard?
+  - Yes, keep it as is.
 3. **Hosting:** Where is this currently deployed? (Heroku, Railway, VPS?)
+  - Currently on Heroku; plan to possibly move elsewhere.
 4. **Timeline:** What's the target completion date?
+  - With Copilot's help, aiming for ASAP.
 5. **Testing Server:** Is there a development Discord server for testing?
+  - Yes, a dedicated test server is available.
 
 ---
 
 ## Approval Checklist
 
-- [ ] Technology stack approved (discord.js, Prisma, pg-boss)
-- [ ] Project structure approved
-- [ ] Command mapping approved
-- [ ] Migration phases approved
-- [ ] Timeline agreed upon
+- [x] Technology stack approved (discord.js, Prisma, pg-boss)
+- [x] Project structure approved
+- [x] Command mapping approved
+- [x] Migration phases approved
+- [x] Timeline agreed upon
 
 ---
 
