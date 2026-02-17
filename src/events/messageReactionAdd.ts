@@ -1,6 +1,6 @@
 import type { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
-import { logger } from '../lib/logger.js';
 import { prisma } from '../lib/database.js';
+import { logger } from '../lib/logger.js';
 import { ReactionService } from '../services/reactionService.js';
 import type { BotEvent } from '../types/index.js';
 
@@ -154,4 +154,4 @@ async function handleQuoteReaction(
 export default event;
 
 // Export the handleReactionRole function for use in messageReactionRemove
-export { handleReactionRole, getEmojiKey };
+export { getEmojiKey, handleReactionRole };

@@ -1,7 +1,7 @@
 import type { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 import { logger } from '../lib/logger.js';
-import { getEmojiKey, handleReactionRole } from './messageReactionAdd.js';
 import type { BotEvent } from '../types/index.js';
+import { getEmojiKey, handleReactionRole } from './messageReactionAdd.js';
 
 const event: BotEvent<'messageReactionRemove'> = {
   name: 'messageReactionRemove',

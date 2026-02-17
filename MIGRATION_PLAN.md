@@ -15,6 +15,13 @@ This document outlines the migration plan for converting the Bot_Man Discord bot
 | Phase 5: Testing & Refinement | ⏳ Not Started | 0% |
 | Phase 6: Deployment & Cutover | ⏳ Not Started | 0% |
 
+### Current Bot Statistics (as of February 17, 2026)
+- **Slash Commands:** 14 registered
+- **Prefix Commands:** 20 registered  
+- **Event Handlers:** 10 active
+- **Services:** 4 (ServerService, UserService, InviteService, ReactionService)
+- **Active Guilds:** 5
+
 **Current Stack:**
 - Ruby 2.7+ / Rails 6+
 - discordrb gem
@@ -444,26 +451,27 @@ FRONTEND_URL=http://localhost:3000
 | Ruby Command | Slash Command | Description | Priority | Status |
 |--------------|---------------|-------------|----------|--------|
 | `!ping` | `/ping` | Bot latency check | 🟢 High | ✅ Done |
-| `!addquote` / `!aq` | `/quote add` | Add a quote | 🟢 High | |
-| `!quote` / `!q` | `/quote get` | Get random/specific quote | 🟢 High | |
-| `!removequote` | `/quote remove` | Remove a quote | 🟢 High | |
-| `!allquotes` | `/quote list` | List all quotes | 🟡 Medium | |
-| `!addreactionrole` | `/reactionrole add` | Add reaction role | 🟢 High | |
-| `!removereactionrole` | `/reactionrole remove` | Remove reaction role | 🟢 High | |
-| `!removeallreactionroles` | `/reactionrole clear` | Clear all reaction roles | 🟡 Medium | |
-| `!clear` | `/clear` | Bulk delete messages | 🟢 High | |
-| `!massmove` / `!mm` | `/massmove` | Move users between voice channels | 🟡 Medium | |
+| `!addquote` / `!aq` | `/quote add` | Add a quote | 🟢 High | ✅ Done |
+| `!quote` / `!q` | `/quote get` | Get random/specific quote | 🟢 High | ✅ Done |
+| `!removequote` | `/quote remove` | Remove a quote | 🟢 High | ✅ Done |
+| `!allquotes` | `/quote list` | List all quotes | 🟡 Medium | ✅ Done |
+| `!addreactionrole` | `/reactionrole add` | Add reaction role | 🟢 High | ✅ Done |
+| `!removereactionrole` | `/reactionrole remove` | Remove reaction role | 🟢 High | ✅ Done |
+| `!removeallreactionroles` | `/reactionrole clear` | Clear all reaction roles | 🟡 Medium | ✅ Done |
+| `!clear` | `/clear` | Bulk delete messages | 🟢 High | ✅ Done |
+| `!massmove` / `!mm` | `/massmove` | Move users between voice channels | 🟡 Medium | ✅ Done |
 | `!random` | `/random` | Generate random number | 🟢 High | ✅ Done |
-| `!set` | `/set` | Update server settings | 🟡 Medium | |
-| `!createjumpchannel` | `/jumpchannel create` | Create temp voice trigger | 🟡 Medium | |
-| `!deletejumpchannel` | `/jumpchannel delete` | Delete temp voice trigger | 🟡 Medium | |
-| `!me` | `/me` | Show username | 🟢 High | |
-| `!invite` | `/invite` | Bot invite URL | 🟢 High | |
-| `!dm` | `/dm` | Send DM to user | 🔴 Low | |
-| `!shutdown` | `/shutdown` | Shutdown bot (owner only) | 🔴 Low | |
+| `!set` | `/set` | Update server settings | 🟡 Medium | ✅ Done |
+| `!createjumpchannel` | `/jumpchannel create` | Create temp voice trigger | 🟡 Medium | ✅ Done |
+| `!deletejumpchannel` | `/jumpchannel delete` | Delete temp voice trigger | 🟡 Medium | ✅ Done |
+| `!me` | `/me` | Show username | 🟢 High | ✅ Done |
+| `!invite` | `/invite` | Bot invite URL | 🟢 High | ✅ Done |
+| `!dm` | `/dm` | Send DM to user | 🔴 Low | ✅ Done |
+| `!shutdown` | `/shutdown` | Shutdown bot (owner only) | 🔴 Low | ✅ Done |
 | `!test` | (remove) | Debug command | ❌ Remove | N/A |
-| 📖 Reaction Quote | (keep) | Quote via emoji reaction | 🟢 High | |
+| 📖 Reaction Quote | (keep) | Quote via emoji reaction | 🟢 High | ✅ Done |
 | (new) | `/info` | Bot statistics and info | 🟢 High | ✅ Done |
+| (new) | `/private` | Send private message | 🔴 Low | ✅ Done |
 
 ---
 
@@ -471,15 +479,15 @@ FRONTEND_URL=http://localhost:3000
 
 | Ruby Event | discord.js Event | Handler Purpose | Status |
 |------------|------------------|-----------------|--------|
-| `raw` | `raw` | Store all events to DB via pg-boss | |
+| `raw` | `raw` | Store all events to DB via pg-boss | ⏸️ Deferred |
 | `ready` | `ready` | Bot startup, invite cache | ✅ Done |
-| `server_create` | `guildCreate` | Sync server info | |
-| `member_join` | `guildMemberAdd` | Invite tracking | |
-| `reaction_add` | `messageReactionAdd` | Reaction roles + quote via reaction | |
-| `reaction_remove` | `messageReactionRemove` | Reaction role removal | |
-| `voice_state_update` | `voiceStateUpdate` | Temp voice channel management | |
-| `invite_create` | `inviteCreate` | Track new invites | |
-| `invite_delete` | `inviteDelete` | Track deleted invites | |
+| `server_create` | `guildCreate` | Sync server info | ✅ Done |
+| `member_join` | `guildMemberAdd` | Invite tracking | ✅ Done |
+| `reaction_add` | `messageReactionAdd` | Reaction roles + quote via reaction | ✅ Done |
+| `reaction_remove` | `messageReactionRemove` | Reaction role removal | ✅ Done |
+| `voice_state_update` | `voiceStateUpdate` | Temp voice channel management | ✅ Done |
+| `invite_create` | `inviteCreate` | Track new invites | ✅ Done |
+| `invite_delete` | `inviteDelete` | Track deleted invites | ✅ Done |
 | `message` | `messageCreate` | Legacy prefix commands | ✅ Done |
 | N/A | `interactionCreate` | Slash command handler | ✅ Done |
 
