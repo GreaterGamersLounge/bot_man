@@ -132,94 +132,90 @@ npx prisma generate         # Generate client
 
 ---
 
-## Project Structure
+## Project Structure (Current)
 
 ```
 bot_man/
 ├── src/
 │   ├── index.ts                    # Entry point
-│   ├── bot.ts                      # Discord client setup
-│   ├── deploy-commands.ts          # Slash command registration
+│   ├── bot.ts                      # Discord client setup (BotClient class)
+│   ├── worker.ts                   # pg-boss job processor
+│   ├── deploy-commands.ts          # Slash command registration (guild/global)
 │   │
-│   ├── commands/                   # Slash commands
-│   │   ├── index.ts                # Command loader
-│   │   ├── utility/
-│   │   │   ├── ping.ts
-│   │   │   ├── info.ts
-│   │   │   └── random.ts
-│   │   ├── quotes/
-│   │   │   ├── addquote.ts
-│   │   │   ├── quote.ts
-│   │   │   ├── removequote.ts
-│   │   │   └── allquotes.ts
+│   ├── commands/                   # Slash + prefix commands
+│   │   ├── index.ts                # Command loader (old/new format support)
+│   │   ├── admin/
+│   │   │   ├── dm.ts               # ✅ Owner-only DM user
+│   │   │   ├── private.ts          # ✅ Send private message
+│   │   │   └── shutdown.ts         # ✅ Owner-only bot shutdown
 │   │   ├── moderation/
-│   │   │   ├── clear.ts
-│   │   │   ├── massmove.ts
-│   │   │   └── set.ts
+│   │   │   ├── clear.ts            # ✅ Bulk delete messages
+│   │   │   ├── massmove.ts         # ✅ Voice channel mass move (autocomplete)
+│   │   │   └── set.ts              # ✅ Server settings
+│   │   ├── quotes/
+│   │   │   └── quote.ts            # ✅ Quote CRUD (subcommands)
 │   │   ├── roles/
-│   │   │   ├── addreactionrole.ts
-│   │   │   ├── removereactionrole.ts
-│   │   │   └── removeallreactionroles.ts
-│   │   ├── voice/
-│   │   │   ├── createjumpchannel.ts
-│   │   │   └── deletejumpchannel.ts
-│   │   └── admin/
-│   │       ├── shutdown.ts
-│   │       └── private.ts
+│   │   │   └── reactionrole.ts     # ✅ Reaction roles (subcommands)
+│   │   ├── utility/
+│   │   │   ├── info.ts             # ✅ Bot info embed
+│   │   │   ├── invite.ts           # ✅ Bot invite URL
+│   │   │   ├── me.ts               # ✅ Display username
+│   │   │   ├── ping.ts             # ✅ Latency check
+│   │   │   └── random.ts           # ✅ Random number
+│   │   └── voice/
+│   │       └── jumpchannel.ts      # ✅ Temp voice channels (subcommands)
 │   │
 │   ├── events/                     # Discord event handlers
 │   │   ├── index.ts                # Event loader
-│   │   ├── ready.ts
-│   │   ├── interactionCreate.ts    # Slash command handler
-│   │   ├── messageCreate.ts        # Legacy prefix commands
-│   │   ├── messageReactionAdd.ts   # Reaction roles
-│   │   ├── messageReactionRemove.ts
-│   │   ├── guildMemberAdd.ts       # Invite tracking
-│   │   ├── guildCreate.ts          # Server sync
-│   │   ├── voiceStateUpdate.ts     # Temp voice channels
-│   │   ├── inviteCreate.ts
-│   │   ├── inviteDelete.ts
-│   │   └── raw.ts                  # Raw event logging
+│   │   ├── ready.ts                # ✅ With invite caching
+│   │   ├── interactionCreate.ts    # ✅ Slash + autocomplete handler
+│   │   └── messageCreate.ts        # ✅ Legacy prefix commands
+│   │   # Pending event handlers (Phase 4):
+│   │   # ├── messageReactionAdd.ts   # Reaction roles
+│   │   # ├── messageReactionRemove.ts
+│   │   # ├── guildMemberAdd.ts       # Invite tracking
+│   │   # ├── guildCreate.ts          # Server sync
+│   │   # ├── voiceStateUpdate.ts     # Temp voice channels
+│   │   # ├── inviteCreate.ts
+│   │   # └── inviteDelete.ts
 │   │
 │   ├── jobs/                       # Background jobs (pg-boss)
 │   │   ├── index.ts                # Job queue setup
-│   │   ├── eventLogger.ts          # Async event storage
-│   │   └── worker.ts               # Job processor
+│   │   └── eventLogger.ts          # Async event storage
 │   │
 │   ├── services/                   # Business logic
-│   │   ├── serverService.ts
-│   │   ├── userService.ts
-│   │   ├── inviteService.ts
-│   │   └── reactionService.ts
+│   │   ├── index.ts                # Service exports
+│   │   ├── serverService.ts        # Server sync operations
+│   │   ├── userService.ts          # Discord user operations
+│   │   ├── inviteService.ts        # Invite tracking
+│   │   └── reactionService.ts      # Reaction role operations
 │   │
 │   ├── lib/                        # Utilities
+│   │   ├── index.ts                # Lib exports
+│   │   ├── config.ts               # Environment configuration (Proxy-based)
 │   │   ├── database.ts             # Prisma client singleton
-│   │   ├── logger.ts               # Logging utility
+│   │   ├── logger.ts               # Winston logging
 │   │   ├── permissions.ts          # Permission checks
 │   │   └── levenshtein.ts          # Fuzzy matching for massmove
 │   │
 │   └── types/                      # TypeScript types
-│       ├── command.ts
-│       ├── event.ts
-│       └── index.ts
+│       ├── index.ts                # Type exports
+│       ├── command.ts              # SlashCommand, PrefixCommand (with autocomplete)
+│       └── event.ts                # BotEvent type
 │
 ├── prisma/
-│   ├── schema.prisma               # Database schema
-│   └── migrations/                 # Migration history
+│   └── schema.prisma               # Database schema (introspected from Rails)
 │
-├── scripts/
-│   └── deploy-commands.ts          # Command deployment script
-│
-├── tests/                          # Test files
-│   └── ...
+├── dist/                           # Compiled JavaScript output
 │
 ├── .env                            # Environment variables
 ├── .env.example
-├── package.json
-├── tsconfig.json
-├── Dockerfile
-├── docker-compose.yml
-└── Procfile
+├── package.json                    # discord.js v14.17.0, Prisma v6.3.0, pg-boss v10.1.5
+├── tsconfig.json                   # TypeScript strict mode
+├── eslint.config.js                # ESLint 9.x flat config
+├── Dockerfile.node                 # Multi-stage Docker build
+├── docker-compose.yml              # Local dev environment
+└── Procfile.node                   # Heroku/Railway deployment
 ```
 
 ---
@@ -543,15 +539,31 @@ src/
 ├── worker.ts                # pg-boss job processor
 ├── deploy-commands.ts       # Slash command registration
 ├── commands/
-│   ├── index.ts             # Command loader
-│   └── utility/
-│       ├── ping.ts          # ✅ Migrated
-│       ├── random.ts        # ✅ Migrated
-│       └── info.ts          # ✅ Migrated (new)
+│   ├── index.ts             # Command loader (supports old/new formats)
+│   ├── admin/
+│   │   ├── dm.ts            # ✅ Owner-only DM user
+│   │   ├── private.ts       # ✅ Send private message
+│   │   └── shutdown.ts      # ✅ Owner-only bot shutdown
+│   ├── moderation/
+│   │   ├── clear.ts         # ✅ Bulk delete messages (2-100)
+│   │   ├── massmove.ts      # ✅ Move users between voice channels (with autocomplete)
+│   │   └── set.ts           # ✅ Server settings (region info)
+│   ├── quotes/
+│   │   └── quote.ts         # ✅ Quote CRUD (add/get/remove/list subcommands)
+│   ├── roles/
+│   │   └── reactionrole.ts  # ✅ Reaction roles (add/remove/clear subcommands)
+│   ├── utility/
+│   │   ├── info.ts          # ✅ Bot information embed
+│   │   ├── invite.ts        # ✅ Bot invite URL
+│   │   ├── me.ts            # ✅ Display username
+│   │   ├── ping.ts          # ✅ Bot latency check
+│   │   └── random.ts        # ✅ Random number generator
+│   └── voice/
+│       └── jumpchannel.ts   # ✅ Temp voice channels (create/delete/list)
 ├── events/
 │   ├── index.ts             # Event loader
 │   ├── ready.ts             # ✅ With invite caching
-│   ├── interactionCreate.ts # ✅ Slash command handler
+│   ├── interactionCreate.ts # ✅ Slash command + autocomplete handler
 │   └── messageCreate.ts     # ✅ Legacy prefix handler
 ├── jobs/
 │   ├── index.ts             # pg-boss queue setup
@@ -582,7 +594,7 @@ src/
 - [x] Implement database service layer
 - [x] Create utility functions (permissions, logging)
 
-### Phase 3: Command Migration (Week 2-3)
+### Phase 3: Command Migration (Week 2-3) ✅ COMPLETED
 - [x] Migrate `/ping` command
 - [x] Migrate `/quote` commands (add, get, remove, list)
 - [x] Migrate `/reactionrole` commands
@@ -593,6 +605,26 @@ src/
 - [x] Migrate `/jumpchannel` commands
 - [x] Migrate utility commands (me, invite)
 - [x] Migrate admin commands (shutdown, dm, private)
+
+**Completed February 17, 2026**
+
+**Command Summary:**
+| Category | Slash Commands | Prefix Commands | Notes |
+|----------|----------------|-----------------|-------|
+| Utility | `/ping`, `/random`, `/info`, `/me`, `/invite` | `!ping`, `!random`, `!info`, `!me`, `!invite` | Aliases: `!rand`, `!roll`, `!botinfo`, `!stats` |
+| Quotes | `/quote` (add/get/remove/list) | `!quote`, `!addquote`, `!removequote`, `!allquotes` | Aliases: `!q`, `!aq`, `!quotes` |
+| Moderation | `/clear`, `/massmove`, `/set` | `!clear`, `!massmove`, `!set` | Aliases: `!mm`; `/massmove` has autocomplete |
+| Roles | `/reactionrole` (add/remove/clear) | `!addreactionrole`, `!removereactionrole`, `!removeallreactionroles` | Aliases: `!arr`, `!rrr`, `!rarr` |
+| Voice | `/jumpchannel` (create/delete/list) | `!createjumpchannel`, `!deletejumpchannel` | Temp voice channel management |
+| Admin | `/shutdown`, `/dm`, `/private` | `!shutdown`, `!dm`, `!pm` | Owner-only; Aliases: `!exit`, `!private` |
+
+**Totals: 14 slash commands, 20 prefix commands deployed**
+
+**Key Implementation Details:**
+- Command loader supports both old (`export default { slash, prefix }`) and new (`export const slashCommand`) formats
+- Autocomplete support added for `/massmove` using Levenshtein distance for fuzzy channel matching
+- All commands support both slash and legacy `!` prefix for backward compatibility
+- Commands use Prisma for database operations (quotes, reaction_roles, temporary_voice_channels)
 
 ### Phase 4: Event Handler Migration (Week 3-4)
 - [x] Implement ready event (with invite caching)
