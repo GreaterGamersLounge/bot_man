@@ -4,6 +4,17 @@
 
 This document outlines the migration plan for converting the Bot_Man Discord bot from Ruby/Rails (using the `discordrb` gem) to TypeScript (using `discord.js`). The migration will maintain PostgreSQL as the database and implement equivalent functionality for all existing commands and event handling.
 
+### Migration Progress
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Phase 1: Project Setup | ✅ Complete | 100% |
+| Phase 2: Core Infrastructure | ✅ Complete | 100% |
+| Phase 3: Command Migration | 🔄 In Progress | 30% |
+| Phase 4: Event Handler Migration | 🔄 In Progress | 30% |
+| Phase 5: Testing & Refinement | ⏳ Not Started | 0% |
+| Phase 6: Deployment & Cutover | ⏳ Not Started | 0% |
+
 **Current Stack:**
 - Ruby 2.7+ / Rails 6+
 - discordrb gem
@@ -391,6 +402,11 @@ DATABASE_URL=postgresql://botman:botman_dev@localhost:5432/botman_development
 NODE_ENV=development
 IS_DEV=true
 
+# Development Settings (optional)
+DEV_GUILD_ID=your_test_server_id_here
+OWNER_ID=your_discord_user_id_here
+LOG_LEVEL=debug
+
 # Optional: Web Dashboard
 FRONTEND_URL=http://localhost:3000
 ```
@@ -400,73 +416,77 @@ FRONTEND_URL=http://localhost:3000
 1. **Initial Setup:**
    ```bash
    cp .env.example .env
-   # Edit .env with your Discord bot token
-   docker compose up -d
-   docker compose exec bot npx prisma migrate dev
-   docker compose exec bot npm run deploy-commands
+   # Edit .env with your Discord bot token and client ID
+   docker compose up -d postgres
+   docker compose run --rm bot npm install
+   docker compose run --rm bot npx prisma generate
+   docker compose run --rm bot npx prisma db push
+   docker compose run --rm bot npm run deploy-commands:guild
    ```
 
 2. **Daily Development:**
    ```bash
-   docker compose up -d
+   docker compose up -d bot worker
    docker compose logs -f bot  # Watch bot logs
    ```
 
 3. **After Schema Changes:**
    ```bash
-   docker compose exec bot npx prisma migrate dev --name describe_change
+   docker compose run --rm bot npx prisma migrate dev --name describe_change
    ```
 
 4. **Testing Commands:**
    - Use a dedicated test Discord server
    - Deploy commands to test guild for instant updates:
      ```bash
-     docker compose exec bot npm run deploy-commands:guild
+     docker compose run --rm bot npm run deploy-commands:guild
      ```
 
 ---
 
 ## Command Migration Reference
 
-| Ruby Command | Slash Command | Description | Priority |
-|--------------|---------------|-------------|----------|
-| `!ping` | `/ping` | Bot latency check | 🟢 High |
-| `!addquote` / `!aq` | `/quote add` | Add a quote | 🟢 High |
-| `!quote` / `!q` | `/quote get` | Get random/specific quote | 🟢 High |
-| `!removequote` | `/quote remove` | Remove a quote | 🟢 High |
-| `!allquotes` | `/quote list` | List all quotes | 🟡 Medium |
-| `!addreactionrole` | `/reactionrole add` | Add reaction role | 🟢 High |
-| `!removereactionrole` | `/reactionrole remove` | Remove reaction role | 🟢 High |
-| `!removeallreactionroles` | `/reactionrole clear` | Clear all reaction roles | 🟡 Medium |
-| `!clear` | `/clear` | Bulk delete messages | 🟢 High |
-| `!massmove` / `!mm` | `/massmove` | Move users between voice channels | 🟡 Medium |
-| `!random` | `/random` | Generate random number | 🟢 High |
-| `!set` | `/set` | Update server settings | 🟡 Medium |
-| `!createjumpchannel` | `/jumpchannel create` | Create temp voice trigger | 🟡 Medium |
-| `!deletejumpchannel` | `/jumpchannel delete` | Delete temp voice trigger | 🟡 Medium |
-| `!me` | `/me` | Show username | 🟢 High |
-| `!invite` | `/invite` | Bot invite URL | 🟢 High |
-| `!dm` | `/dm` | Send DM to user | 🔴 Low |
-| `!shutdown` | `/shutdown` | Shutdown bot (owner only) | 🔴 Low |
-| `!test` | (remove) | Debug command | ❌ Remove |
-| 📖 Reaction Quote | (keep) | Quote via emoji reaction | 🟢 High |
+| Ruby Command | Slash Command | Description | Priority | Status |
+|--------------|---------------|-------------|----------|--------|
+| `!ping` | `/ping` | Bot latency check | 🟢 High | ✅ Done |
+| `!addquote` / `!aq` | `/quote add` | Add a quote | 🟢 High | |
+| `!quote` / `!q` | `/quote get` | Get random/specific quote | 🟢 High | |
+| `!removequote` | `/quote remove` | Remove a quote | 🟢 High | |
+| `!allquotes` | `/quote list` | List all quotes | 🟡 Medium | |
+| `!addreactionrole` | `/reactionrole add` | Add reaction role | 🟢 High | |
+| `!removereactionrole` | `/reactionrole remove` | Remove reaction role | 🟢 High | |
+| `!removeallreactionroles` | `/reactionrole clear` | Clear all reaction roles | 🟡 Medium | |
+| `!clear` | `/clear` | Bulk delete messages | 🟢 High | |
+| `!massmove` / `!mm` | `/massmove` | Move users between voice channels | 🟡 Medium | |
+| `!random` | `/random` | Generate random number | 🟢 High | ✅ Done |
+| `!set` | `/set` | Update server settings | 🟡 Medium | |
+| `!createjumpchannel` | `/jumpchannel create` | Create temp voice trigger | 🟡 Medium | |
+| `!deletejumpchannel` | `/jumpchannel delete` | Delete temp voice trigger | 🟡 Medium | |
+| `!me` | `/me` | Show username | 🟢 High | |
+| `!invite` | `/invite` | Bot invite URL | 🟢 High | |
+| `!dm` | `/dm` | Send DM to user | 🔴 Low | |
+| `!shutdown` | `/shutdown` | Shutdown bot (owner only) | 🔴 Low | |
+| `!test` | (remove) | Debug command | ❌ Remove | N/A |
+| 📖 Reaction Quote | (keep) | Quote via emoji reaction | 🟢 High | |
+| (new) | `/info` | Bot statistics and info | 🟢 High | ✅ Done |
 
 ---
 
 ## Event Migration Reference
 
-| Ruby Event | discord.js Event | Handler Purpose |
-|------------|------------------|-----------------|
-| `raw` | `raw` | Store all events to DB via pg-boss |
-| `ready` | `ready` | Bot startup, invite cache |
-| `server_create` | `guildCreate` | Sync server info |
-| `member_join` | `guildMemberAdd` | Invite tracking |
-| `reaction_add` | `messageReactionAdd` | Reaction roles + quote via reaction |
-| `reaction_remove` | `messageReactionRemove` | Reaction role removal |
-| `voice_state_update` | `voiceStateUpdate` | Temp voice channel management |
-| `invite_create` | `inviteCreate` | Track new invites |
-| `invite_delete` | `inviteDelete` | Track deleted invites |
-| `message` | `messageCreate` | Legacy prefix commands |
+| Ruby Event | discord.js Event | Handler Purpose | Status |
+|------------|------------------|-----------------|--------|
+| `raw` | `raw` | Store all events to DB via pg-boss | |
+| `ready` | `ready` | Bot startup, invite cache | ✅ Done |
+| `server_create` | `guildCreate` | Sync server info | |
+| `member_join` | `guildMemberAdd` | Invite tracking | |
+| `reaction_add` | `messageReactionAdd` | Reaction roles + quote via reaction | |
+| `reaction_remove` | `messageReactionRemove` | Reaction role removal | |
+| `voice_state_update` | `voiceStateUpdate` | Temp voice channel management | |
+| `invite_create` | `inviteCreate` | Track new invites | |
+| `invite_delete` | `inviteDelete` | Track deleted invites | |
+| `message` | `messageCreate` | Legacy prefix commands | ✅ Done |
+| N/A | `interactionCreate` | Slash command handler | ✅ Done |
 
 ---
 
@@ -493,36 +513,89 @@ FRONTEND_URL=               # Frontend app URL for CORS
 
 ## Migration Phases
 
-### Phase 1: Project Setup (Week 1)
-- [ ] Initialize Node.js/TypeScript project
-- [ ] Configure ESLint, Prettier
-- [ ] Set up Prisma with database introspection
-- [ ] Create basic discord.js client
-- [ ] Set up pg-boss for background jobs
-- [ ] Create project structure
-- [ ] Configure Docker/Procfile
+### Phase 1: Project Setup (Week 1) ✅ COMPLETED
+- [x] Initialize Node.js/TypeScript project
+- [x] Configure ESLint, Prettier
+- [x] Set up Prisma with database schema
+- [x] Create basic discord.js client
+- [x] Set up pg-boss for background jobs
+- [x] Create project structure
+- [x] Configure Docker/Procfile
+
+**Completed February 17, 2026**
+
+**Files Created:**
+- `package.json` - Dependencies (discord.js v14.17.0, Prisma v6.3.0, pg-boss v10.1.5, winston v3.17.0)
+- `tsconfig.json` - TypeScript strict mode configuration
+- `eslint.config.js` - ESLint 9.x flat config with TypeScript support
+- `.prettierrc` / `.prettierignore` - Code formatting
+- `prisma/schema.prisma` - Database schema matching existing Rails models
+- `Dockerfile.node` - Multi-stage build (development/production)
+- `docker-compose.yml` - Local dev with PostgreSQL, bot, worker, Prisma Studio
+- `Procfile.node` - Heroku/Railway deployment config
+- `.env.example` - Environment variable template
+
+**Source Structure Created:**
+```
+src/
+├── index.ts                 # Entry point
+├── bot.ts                   # BotClient class with Collections
+├── worker.ts                # pg-boss job processor
+├── deploy-commands.ts       # Slash command registration
+├── commands/
+│   ├── index.ts             # Command loader
+│   └── utility/
+│       ├── ping.ts          # ✅ Migrated
+│       ├── random.ts        # ✅ Migrated
+│       └── info.ts          # ✅ Migrated (new)
+├── events/
+│   ├── index.ts             # Event loader
+│   ├── ready.ts             # ✅ With invite caching
+│   ├── interactionCreate.ts # ✅ Slash command handler
+│   └── messageCreate.ts     # ✅ Legacy prefix handler
+├── jobs/
+│   ├── index.ts             # pg-boss queue setup
+│   └── eventLogger.ts       # Async event storage
+├── services/
+│   ├── index.ts
+│   ├── serverService.ts     # Server sync operations
+│   ├── userService.ts       # Discord user operations
+│   ├── inviteService.ts     # Invite tracking
+│   └── reactionService.ts   # Reaction role operations
+├── lib/
+│   ├── index.ts
+│   ├── config.ts            # Environment configuration
+│   ├── database.ts          # Prisma client singleton
+│   ├── logger.ts            # Winston logger
+│   ├── permissions.ts       # Permission checks
+│   └── levenshtein.ts       # Fuzzy matching for massmove
+└── types/
+    ├── index.ts
+    ├── command.ts           # SlashCommand, PrefixCommand types
+    └── event.ts             # BotEvent type
+```
 
 ### Phase 2: Core Infrastructure (Week 1-2)
-- [ ] Implement command handler (slash + legacy prefix)
-- [ ] Implement event handler
-- [ ] Set up raw event logging via pg-boss
-- [ ] Implement database service layer
-- [ ] Create utility functions (permissions, logging)
+- [x] Implement command handler (slash + legacy prefix)
+- [x] Implement event handler
+- [x] Set up raw event logging via pg-boss
+- [x] Implement database service layer
+- [x] Create utility functions (permissions, logging)
 
 ### Phase 3: Command Migration (Week 2-3)
-- [ ] Migrate `/ping` command
+- [x] Migrate `/ping` command
 - [ ] Migrate `/quote` commands (add, get, remove, list)
 - [ ] Migrate `/reactionrole` commands
 - [ ] Migrate `/clear` command
 - [ ] Migrate `/massmove` command
-- [ ] Migrate `/random` command
+- [x] Migrate `/random` command
 - [ ] Migrate `/set` command
 - [ ] Migrate `/jumpchannel` commands
 - [ ] Migrate utility commands (me, invite)
 - [ ] Migrate admin commands (shutdown, dm)
 
 ### Phase 4: Event Handler Migration (Week 3-4)
-- [ ] Implement ready event (with invite caching)
+- [x] Implement ready event (with invite caching)
 - [ ] Implement guildCreate (server sync)
 - [ ] Implement guildMemberAdd (invite tracking)
 - [ ] Implement messageReactionAdd/Remove (reaction roles)
@@ -924,4 +997,4 @@ primary_region = "ord"
 ---
 
 *Document created: February 16, 2026*
-*Last updated: February 16, 2026*
+*Last updated: February 17, 2026*
