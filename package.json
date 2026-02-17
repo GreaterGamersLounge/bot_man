@@ -1,0 +1,59 @@
+{
+  "name": "bot_man",
+  "version": "2.0.0",
+  "description": "Bot_Man Discord bot - TypeScript/discord.js migration",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:bot": "node dist/index.js",
+    "start:worker": "node dist/worker.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:bot": "tsx watch src/index.ts",
+    "dev:worker": "tsx watch src/worker.ts",
+    "deploy-commands": "tsx src/deploy-commands.ts",
+    "deploy-commands:guild": "DEPLOY_GUILD=true tsx src/deploy-commands.ts",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.0",
+    "discord.js": "^14.17.0",
+    "dotenv": "^16.4.7",
+    "pg-boss": "^10.1.5",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.13.1",
+    "eslint": "^9.19.0",
+    "prettier": "^3.4.2",
+    "prisma": "^6.3.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.22.0",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js",
+    "typescript"
+  ],
+  "license": "MIT"
+}
