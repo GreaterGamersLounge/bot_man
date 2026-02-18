@@ -7,23 +7,50 @@ import { logger } from './lib/logger.js';
 /**
  * Deploy slash commands to Discord
  *
+ * Environment variables:
+ * - DEPLOY_GUILD=true: Deploy to dev guild (instant, for development)
+ * - CLEAR_GLOBAL=true: Clear all global commands
+ * - CLEAR_GUILD=true: Clear all guild commands
+ *
  * By default, deploys globally (takes up to 1 hour to propagate).
- * Set DEPLOY_GUILD=true to deploy to a specific guild (instant, for development).
  */
 async function deployCommands(): Promise<void> {
   const config = getConfig();
-
-  const commands = getSlashCommandData().map((command) => command.toJSON());
-
-  logger.info(`Preparing to deploy ${commands.length} slash commands...`);
-
   const rest = new REST().setToken(config.botToken);
 
+  const clearGlobal = process.env.CLEAR_GLOBAL === 'true';
+  const clearGuild = process.env.CLEAR_GUILD === 'true';
+  const deployGuild = process.env.DEPLOY_GUILD === 'true';
+
   try {
-    const deployGuild = process.env.DEPLOY_GUILD === 'true';
+    // Clear global commands if requested
+    if (clearGlobal) {
+      logger.info('Clearing all global commands...');
+      await rest.put(Routes.applicationCommands(config.clientId), { body: [] });
+      logger.info('Global commands cleared.');
+    }
+
+    // Clear guild commands if requested
+    if (clearGuild) {
+      const guildId = config.devGuildId;
+      if (!guildId) {
+        throw new Error('DEV_GUILD_ID required for clearing guild commands');
+      }
+      logger.info(`Clearing all commands from guild: ${guildId}`);
+      await rest.put(Routes.applicationGuildCommands(config.clientId, guildId), { body: [] });
+      logger.info('Guild commands cleared.');
+    }
+
+    // If only clearing, exit early
+    if ((clearGlobal || clearGuild) && !deployGuild && !process.env.DEPLOY_GLOBAL) {
+      return;
+    }
+
+    const commands = getSlashCommandData().map((command) => command.toJSON());
+    logger.info(`Preparing to deploy ${commands.length} slash commands...`);
 
     if (deployGuild) {
-      // Deploy to specific guild (instant)
+      // Deploy to specific guild (instant) - recommended for development
       const guildId = config.devGuildId;
 
       if (!guildId) {
