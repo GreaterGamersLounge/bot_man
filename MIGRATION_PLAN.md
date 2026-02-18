@@ -909,80 +909,237 @@ release: npx prisma migrate deploy
 
 ## Future Enhancements & Production Deployment
 
-### Recommended Production Hosting Options
+> **Note:** Since you already have PostgreSQL on AWS RDS, the comparison below focuses on **compute-only costs** for running the bot and worker processes.
 
-| Platform | Pros | Cons | Cost | Best For |
-|----------|------|------|------|----------|
-| **Railway** ⭐ | Easy deploy, built-in PostgreSQL, auto-scaling, excellent DX | Newer platform | ~$5-20/mo | Small-medium bots |
-| **Render** | Free tier, managed PostgreSQL, automatic deploys | Cold starts on free tier | Free-$25/mo | Budget-conscious |
-| **Fly.io** | Global edge deployment, generous free tier, great performance | More complex setup | Free-$10/mo | Performance-focused |
-| **DigitalOcean App Platform** | Simple, predictable pricing, managed DB | Less flexible | ~$12-24/mo | Simplicity |
-| **AWS (ECS/Fargate)** | Enterprise-grade, highly scalable | Complex, expensive | $30+/mo | Large scale |
-| **Self-hosted VPS** | Full control, cheapest at scale | Maintenance burden | $5-20/mo | Full control |
+### Detailed Hosting Comparison (Compute Only - Using Existing RDS)
 
-### Recommended: Railway
+#### 1. Heroku (Current)
 
-**Why Railway?**
-- One-click PostgreSQL provisioning
-- Automatic deployments from GitHub
-- Built-in environment variable management
-- Easy horizontal scaling
-- Excellent logging and monitoring
-- Supports multiple services (bot, worker) in one project
-- Pay-per-use pricing
+| Tier | Cost | Features | Discord Bot Suitability |
+|------|------|----------|-------------------------|
+| **Eco Dynos** | $5/mo for 1,000 hours shared | Sleeps after 30min inactivity | ❌ **Not suitable** - bot needs 24/7 |
+| **Basic Dynos** | $7/mo per dyno | Always-on, no sleep | ✅ Works well |
+| **Standard 1x** | $25/mo per dyno | 512MB RAM, horizontal scaling | ✅ Production-ready |
 
-**Railway Setup:**
+**For Bot + Worker:** 2x Basic Dynos = **$14/mo**
+
+**Pros:** Familiar, easy GitHub deploys, good logging
+**Cons:** No free tier anymore, can get expensive with add-ons
+
+---
+
+#### 2. Vercel
+
+| Tier | Cost | Limitations |
+|------|------|-------------|
+| Hobby | Free | 10s function timeout, no always-on |
+| Pro | $20/user/mo | 60s timeout, still serverless |
+
+**⚠️ NOT RECOMMENDED for Discord bots**
+- Vercel is serverless-only — functions spin up per request and timeout
+- Discord bots need a persistent WebSocket connection (always-on process)
+- No way to run a long-lived Node.js process on Vercel
+- Would need to architect a separate solution anyway
+
+---
+
+#### 3. Railway
+
+| Tier | Base Cost | Included Usage | Overage |
+|------|-----------|----------------|---------|
+| **Trial** | Free (one-time) | $5 credit | N/A |
+| **Hobby** | $5/mo | $5/mo usage included | Pay per use |
+| **Pro** | $20/mo | $10/mo usage included | Pay per use |
+
+**Compute Pricing (usage-based):**
+- vCPU: ~$0.000463/min ($0.028/hr)
+- Memory: ~$0.000231/GB/min
+
+**For Bot + Worker (minimal resources, 24/7):**
+- 0.5 vCPU + 512MB each ≈ **$5-10/mo total** (often within Hobby included usage!)
+
+**Pros:**
+- Best DX of any platform
+- GitHub auto-deploy
+- Great logs/monitoring UI
+- Multiple services in one project
+- Usage-based = pay only for what you use
+
+**Cons:**
+- No true free tier (trial expires)
+- Slightly unpredictable costs
+
+---
+
+#### 4. Fly.io ⭐ **BEST FREE OPTION**
+
+| Resource | Free Allowance | Paid Rate |
+|----------|----------------|-----------|
+| **VMs** | 3 shared-cpu-1x (256MB) | $0.0027/hr (~$1.94/mo) |
+| **Storage** | 3GB volumes | $0.15/GB/mo |
+| **Bandwidth** | 160GB outbound | $0.02/GB (NA/EU) |
+
+**For Bot + Worker (both free tier eligible):**
+- 2x shared-cpu-1x VMs = **$0/mo** ✅
+- Each VM: 256MB RAM, shared vCPU
+- More than enough for a Discord bot
+
+**Pros:**
+- **Actually free** for small workloads
+- Global edge deployment
+- Good performance
+- CLI-based (you'll like this)
+
+**Cons:**
+- CLI required (no web UI for deploys)
+- 256MB RAM limit per VM on free tier
+- Free tier could change (they've adjusted it before)
+
+---
+
+#### 5. AWS Options
+
+Since you already have RDS and AWS experience, here are the compute options:
+
+##### Option A: EC2 t4g.small (FREE until Dec 31, 2026!)
+
+| Resource | Cost |
+|----------|------|
+| t4g.small (2 vCPU, 2GB RAM) | **FREE** (750 hrs/mo until end of 2026) |
+| Public IPv4 address | ~$3.75/mo |
+| 25GB EBS (gp3) | ~$2.40/mo |
+| **Total** | **~$6.15/mo** (just for IP + storage!) |
+
+**After free tier (Jan 2027):** ~$12.26/mo for instance + $6.15 = ~$18/mo
+
+##### Option B: EC2 t4g.nano (Cheapest always-on)
+
+| Resource | Cost |
+|----------|------|
+| t4g.nano (2 vCPU, 0.5GB RAM) | ~$3.07/mo |
+| Public IPv4 | ~$3.75/mo |
+| 20GB EBS | ~$2.00/mo |
+| **Total** | **~$8.82/mo** |
+
+##### Option C: ECS Fargate (Serverless containers)
+
+| Config | Monthly Cost |
+|--------|--------------|
+| 0.25 vCPU + 0.5GB (bot) | ~$9/mo |
+| 0.25 vCPU + 0.5GB (worker) | ~$9/mo |
+| **Total** | **~$18/mo** |
+
+With **Fargate Spot** (up to 70% off): **~$6-8/mo** but can be interrupted
+
+##### Option D: AWS App Runner
+
+| Resource | Cost |
+|----------|------|
+| 0.25 vCPU + 0.5GB, always-on | ~$5/mo per service |
+| **Bot + Worker** | **~$10/mo** |
+
+**Pros:** Simple, managed, auto-scaling
+**Cons:** Less control than ECS
+
+---
+
+### Summary Comparison (Compute Only)
+
+| Platform | Monthly Cost | Free Tier? | Ease of Use | Best For |
+|----------|--------------|------------|-------------|----------|
+| **Fly.io** | **$0** | ✅ Yes (3 VMs) | Medium (CLI) | 💰 **Cheapest** |
+| **AWS t4g.small** | **~$6** | ✅ Until Dec 2026 | Medium | 🏆 **Best value in 2026** |
+| **AWS t4g.nano** | **~$9** | ❌ | Medium | After t4g.small free ends |
+| **Railway Hobby** | **$5-10** | ❌ ($5 trial) | ⭐ Easiest | Best DX |
+| **Heroku Basic** | **$14** | ❌ | Easy | Familiar |
+| **AWS Fargate Spot** | **~$6-8** | ❌ | Complex | Scalability |
+| **AWS Fargate** | **~$18** | ❌ | Complex | Production/Enterprise |
+| **Vercel** | N/A | N/A | N/A | ❌ Not suitable |
+
+---
+
+### 🏆 Recommendations
+
+#### If You Want FREE (Best for 2026):
+**Fly.io** — Run bot + worker on free tier VMs. CLI-based but works great.
+
+#### If You Want FREE + AWS Integration:
+**AWS EC2 t4g.small** — Free until Dec 2026, same VPC as your RDS = no data transfer costs, easy connectivity. Just ~$6/mo for IP + storage.
+
+#### If You Want Easy + Cheap:
+**Railway Hobby** — $5/mo includes usage, best developer experience, auto-deploys from GitHub.
+
+#### If You Want Production-Grade AWS:
+**AWS Fargate Spot** or **App Runner** — ~$6-10/mo, managed, scales automatically.
+
+---
+
+### Recommended Setup: AWS EC2 + Existing RDS
+
+Since you already have RDS, the cleanest setup is:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     AWS Production Setup                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────────────────────────────────┐                │
+│  │         EC2 t4g.small (or t4g.nano)         │                │
+│  │  ┌─────────────┐    ┌─────────────┐         │                │
+│  │  │ Bot Process │    │   Worker    │         │                │
+│  │  │ (discord.js)│    │  (pg-boss)  │         │                │
+│  │  └──────┬──────┘    └──────┬──────┘         │                │
+│  └─────────┼──────────────────┼────────────────┘                │
+│            │                  │                                  │
+│            │    Private Subnet (no data transfer $)              │
+│            │                  │                                  │
+│            └────────┬─────────┘                                  │
+│                     │                                            │
+│            ┌────────▼────────┐                                   │
+│            │  RDS PostgreSQL │  (existing)                       │
+│            │    (Private)    │                                   │
+│            └─────────────────┘                                   │
+│                                                                  │
+│  Monthly Cost: ~$6 (t4g.small free) or ~$9 (t4g.nano)           │
+│  After Dec 2026: ~$18 (t4g.small) or ~$9 (t4g.nano)             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Setup with PM2 (process manager):**
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# On EC2 instance
+npm install -g pm2
 
-# Login and initialize
-railway login
-railway init
+# ecosystem.config.js
+module.exports = {
+  apps: [
+    {
+      name: 'bot',
+      script: 'dist/index.js',
+      env: { NODE_ENV: 'production' }
+    },
+    {
+      name: 'worker',
+      script: 'dist/worker.js',
+      env: { NODE_ENV: 'production' }
+    }
+  ]
+};
 
-# Add PostgreSQL
-railway add --plugin postgresql
-
-# Deploy
-railway up
+# Start both processes
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup  # Auto-start on reboot
 ```
 
-**Railway Service Configuration:**
-```toml
-# railway.toml
-[build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+---
 
-[deploy]
-startCommand = "npm run start:bot"
-healthcheckPath = "/health"
-restartPolicyType = "always"
-```
-
-### Alternative: Fly.io
-
-**Fly.io Setup:**
-```bash
-# Install flyctl
-curl -L https://fly.io/install.sh | sh
-
-# Login and launch
-fly auth login
-fly launch
-
-# Create PostgreSQL
-fly postgres create
-fly postgres attach
-
-# Deploy
-fly deploy
-```
+### Alternative: Fly.io Setup (Free)
 
 **fly.toml:**
 ```toml
 app = "botman"
-primary_region = "ord"
+primary_region = "iad"  # US East, close to your RDS
 
 [build]
   dockerfile = "Dockerfile"
@@ -990,17 +1147,17 @@ primary_region = "ord"
 [env]
   NODE_ENV = "production"
 
-[[services]]
-  internal_port = 8080
-  protocol = "tcp"
+# Bot service (no HTTP needed, just runs)
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+```
 
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
+**Separate worker (optional):**
+```bash
+fly launch --name botman-worker
+# Use same fly.toml structure
 ```
 
 ### Production Architecture
@@ -1068,16 +1225,19 @@ primary_region = "ord"
 | **Music Playback** | Voice channel music (requires additional libs) | High |
 | **Leveling System** | XP and levels for server members | Medium |
 
-### Cost Estimation (Monthly)
+### Cost Estimation (Monthly) — Compute Only (Using Existing RDS)
 
-| Component | Railway | Render | Fly.io | Self-hosted |
-|-----------|---------|--------|--------|-------------|
-| Bot Service | $5-10 | $7 | $0-5 | $5 |
-| Worker Service | $5-10 | $7 | $0-5 | included |
-| PostgreSQL (1GB) | $5 | $7 | $0 (shared) | included |
-| **Total** | **$15-25** | **$21** | **$0-10** | **$5-10** |
+| Platform | Bot + Worker | Notes |
+|----------|--------------|-------|
+| **Fly.io** | **$0** | Free tier (3 VMs) |
+| **AWS t4g.small** | **~$6** | Free instance until Dec 2026, pay only IP+storage |
+| **AWS t4g.nano** | **~$9** | Smallest always-on option |
+| **Railway Hobby** | **$5-10** | Usage-based, often within $5 included |
+| **Heroku Basic** | **$14** | 2x $7 dynos |
+| **AWS Fargate** | **~$18** | 2x minimal tasks |
+| **Vercel** | **N/A** | ❌ Not suitable for Discord bots |
 
-*Note: Costs vary based on usage. Free tiers may have limitations (cold starts, sleep after inactivity).*
+*Your existing RDS costs are separate and unchanged.*
 
 ---
 
