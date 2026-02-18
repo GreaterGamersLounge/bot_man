@@ -159,6 +159,9 @@ npm ci
 npx prisma generate
 npx prisma migrate deploy
 npm run build
+
+# Deploy Discord slash commands
+npm run deploy-commands
 ```
 
 ### Start with PM2

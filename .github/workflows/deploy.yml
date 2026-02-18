@@ -33,6 +33,9 @@ jobs:
             # Run migrations (if any)
             npx prisma migrate deploy
 
+            # Deploy Discord slash commands
+            npm run deploy-commands
+
             # Restart PM2 processes
             pm2 restart ecosystem.config.cjs --update-env
 
