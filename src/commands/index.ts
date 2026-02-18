@@ -26,6 +26,7 @@ import * as jumpchannel from './voice/jumpchannel.js';
 // Admin commands
 import * as dm from './admin/dm.js';
 import * as privateCmd from './admin/private.js';
+import * as reload from './admin/reload.js';
 import * as shutdown from './admin/shutdown.js';
 
 /**
@@ -83,6 +84,7 @@ const commandModules: CommandModule[] = [
   shutdown,
   dm,
   privateCmd,
+  reload,
 ];
 
 /**
