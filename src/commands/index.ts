@@ -16,7 +16,6 @@ import * as quote from './quotes/quote.js';
 // Moderation commands
 import * as clear from './moderation/clear.js';
 import * as massmove from './moderation/massmove.js';
-import * as set from './moderation/set.js';
 
 // Role commands
 import * as reactionrole from './roles/reactionrole.js';
@@ -79,7 +78,6 @@ const commandModules: CommandModule[] = [
   // Moderation
   clear,
   massmove,
-  set,
   // Roles
   reactionrole,
   // Voice
