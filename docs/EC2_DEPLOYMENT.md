@@ -267,6 +267,7 @@ git pull origin master
 npm ci
 npx prisma generate
 npm run build
+npm run deploy-commands
 pm2 restart ecosystem.config.cjs
 ```
 
