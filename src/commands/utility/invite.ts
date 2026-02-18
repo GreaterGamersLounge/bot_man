@@ -1,30 +1,19 @@
 import {
-    ChatInputCommandInteraction,
-    Message,
-    OAuth2Scopes,
-    PermissionFlagsBits,
-    SlashCommandBuilder,
+  ChatInputCommandInteraction,
+  Message,
+  OAuth2Scopes,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
 } from 'discord.js';
 import { config } from '../../lib/config.js';
 import type { PrefixCommand, SlashCommand } from '../../types/command.js';
 
 /**
- * Generate bot invite URL with required permissions
+ * Generate bot invite URL with full admin permissions
  */
 function generateInviteUrl(clientId: string): string {
-  const permissions = [
-    PermissionFlagsBits.SendMessages,
-    PermissionFlagsBits.ManageMessages,
-    PermissionFlagsBits.EmbedLinks,
-    PermissionFlagsBits.ReadMessageHistory,
-    PermissionFlagsBits.AddReactions,
-    PermissionFlagsBits.ManageRoles,
-    PermissionFlagsBits.MoveMembers,
-    PermissionFlagsBits.ManageChannels,
-    PermissionFlagsBits.ViewChannel,
-  ];
-
-  const permissionValue = permissions.reduce((acc, perm) => acc | perm, BigInt(0));
+  // Full Administrator permissions
+  const permissionValue = PermissionFlagsBits.Administrator;
 
   const params = new URLSearchParams({
     client_id: clientId,
