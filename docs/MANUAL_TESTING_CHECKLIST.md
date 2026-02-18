@@ -16,173 +16,133 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Utility Commands
 
 #### `/ping`
-- [ ] Command responds with latency information
-- [ ] Latency values are reasonable (< 1000ms typically)
-- [ ] Response is ephemeral
+- [x] Command responds with latency information
+- [x] Latency values are reasonable (< 1000ms typically)
+- [x] Response is ephemeral
 
 #### `/info`
-- [ ] Shows bot information embed
-- [ ] Guild count is accurate
-- [ ] Uptime is displayed
-- [ ] Version number is correct
+- [x] Shows bot information embed
+- [x] Guild count is accurate
+- [x] Uptime is displayed
+- [x] Version number is correct
 
 #### `/invite`
-- [ ] Returns valid bot invite URL
-- [ ] URL includes required permissions
-- [ ] Response is ephemeral
+- [x] Returns valid bot invite URL
+- [x] URL includes required permissions
+- [x] Response is ephemeral
 
 #### `/me`
-- [ ] Displays invoking user's username
-- [ ] Works for users with special characters in name
+- [x] Displays invoking user's username
+- [x] Works for users with special characters in name
 
 #### `/random`
-- [ ] Returns random number with no args (1-100 default)
-- [ ] `/random max:50` returns number 1-50
-- [ ] `/random min:10 max:20` returns number 10-20
-- [ ] Handles edge case where min > max
+- [x] Returns random number with no args (1-100 default)
+- [x] `/random max:50` returns number 1-50
+- [x] `/random min:10 max:20` returns number 10-20
+- [x] Handles edge case where min > max
 
 ---
 
 ### Admin Commands (Owner Only)
 
 #### `/dm`
-- [ ] Only bot owner can execute
-- [ ] Non-owners receive "Only the bot owner can use this command."
-- [ ] Successfully sends DM to target user
-- [ ] Handles users with DMs disabled gracefully
+- [x] Only bot owner can execute
+- [x] Non-owners receive "Only the bot owner can use this command."
+- [x] Successfully sends DM to target user
+- [x] Handles users with DMs disabled gracefully
 
 #### `/private`
-- [ ] Sends "Go away..." DM to invoking user
-- [ ] Handles DMs disabled error
+- [x] Sends "Go away..." DM to invoking user
+- [x] Handles DMs disabled error
 
 #### `/shutdown`
-- [ ] Only bot owner can execute
-- [ ] Non-owners receive rejection message
-- [ ] Bot shuts down cleanly (manual restart required after test)
+- [x] Only bot owner can execute
+- [x] Non-owners receive rejection message
+- [x] Bot shuts down cleanly (manual restart required after test)
 
 ---
 
 ### Moderation Commands
 
 #### `/clear`
-- [ ] Requires `ManageMessages` permission
-- [ ] Deletes specified number of messages (1-100)
-- [ ] Does not delete messages older than 14 days
-- [ ] Shows count of deleted messages
-- [ ] Error handling for invalid counts
+- [x] Requires `ManageMessages` permission
+- [x] Deletes specified number of messages (1-100)
+- [x] Does not delete messages older than 14 days
+- [x] Shows count of deleted messages
+- [x] Error handling for invalid counts
 
 #### `/massmove`
-- [ ] Requires `MoveMembers` permission
-- [ ] Autocomplete suggests voice channels
-- [ ] Fuzzy matching finds channels by partial name
-- [ ] Moves all users from source to destination
-- [ ] Shows count of moved users
-- [ ] Handles empty source channel
-
-#### `/set`
-- [ ] `/set prefix` - Changes server command prefix
-- [ ] `/set invitechannel` - Sets invite tracking channel
-- [ ] Only admins can use
-- [ ] Changes persist in database
+- [x] Requires `MoveMembers` permission
+- [x] Autocomplete suggests voice channels
+- [x] Fuzzy matching finds channels by partial name
+- [x] Moves all users from source to destination
+- [x] Shows count of moved users
+- [x] Handles empty source channel
 
 ---
 
 ### Quote Commands
 
 #### `/quote get`
-- [ ] Returns random quote with no args
-- [ ] `/quote get number:5` returns quote #5
-- [ ] `/quote get user:@someone` returns quote from that user
-- [ ] Handles non-existent quotes gracefully
-- [ ] Shows quoter, quotee, and timestamp
+- [x] Returns random quote with no args
+- [x] `/quote get number:5` returns quote #5
+- [x] `/quote get user:@someone` returns quote from that user
+- [x] Handles non-existent quotes gracefully
+- [x] Shows quoter, quotee, and timestamp
 
 #### `/quote add`
-- [ ] Adds quote to database
-- [ ] Returns new quote ID
-- [ ] Requires quotee and text
+- [x] Adds quote to database
+- [x] Returns new quote ID
+- [x] Requires quotee and text
 
 #### `/quote remove`
-- [ ] Only quoter can remove their quote
-- [ ] Admin can remove any quote
-- [ ] Handles non-existent quote ID
+- [x] Only quoter can remove their quote
+- [x] Admin can remove any quote
+- [x] Handles non-existent quote ID
 
 ---
 
 ### Reaction Role Commands
 
 #### `/reactionrole add`
-- [ ] Requires Administrator permission
-- [ ] Adds reaction to target message
-- [ ] Creates database entry
-- [ ] Works with unicode emojis
-- [ ] Works with server custom emojis
-- [ ] Rejects emojis from other servers
+- [x] Requires Administrator permission
+- [x] Adds reaction to target message
+- [x] Creates database entry
+- [x] Works with unicode emojis
+- [x] Works with server custom emojis
+- [x] Rejects emojis from other servers
 
 #### `/reactionrole remove`
-- [ ] Removes specific emoji-role mapping
-- [ ] Removes reaction from message
-- [ ] Handles non-existent mapping
+- [x] Removes specific emoji-role mapping
+- [x] Removes reaction from message
+- [x] Handles non-existent mapping
 
 #### `/reactionrole clear`
-- [ ] Removes all reaction roles from message
-- [ ] Removes all reactions
-- [ ] Shows confirmation embed
+- [x] Removes all reaction roles from message
+- [x] Removes all reactions
+- [x] Shows confirmation embed
 
 ---
 
 ### Voice Commands
 
 #### `/jumpchannel create`
-- [ ] Requires Administrator permission
-- [ ] Creates voice channel with given name
-- [ ] Records in database
+- [x] Requires Administrator permission
+- [x] Creates NEW voice channel when `name` provided
+- [x] Designates EXISTING channel when `channel` provided
+- [x] Rejects if both `name` and `channel` provided
+- [x] Rejects if neither `name` nor `channel` provided
+- [x] Rejects if channel is already a jump channel
+- [x] Records in database
 
 #### `/jumpchannel delete`
-- [ ] Deletes jump channel
-- [ ] Updates database record
-- [ ] Rejects non-jump channels
+- [x] Deletes jump channel
+- [x] Updates database record
+- [x] Rejects non-jump channels
 
 #### `/jumpchannel list`
-- [ ] Shows all active jump channels
-- [ ] Handles server with no jump channels
-
----
-
-## Prefix Commands (!commands)
-
-### Basic Commands
-- [ ] `!ping` - Works like slash version
-- [ ] `!info` - Shows bot info
-- [ ] `!random` / `!random 50` / `!random 10 50`
-- [ ] `!me` - Shows username
-- [ ] `!pm` / `!private` - Sends DM
-
-### Quote Commands
-- [ ] `!quote` - Random quote
-- [ ] `!quote 5` - Quote by ID
-- [ ] `!quote @user` - Quote by user
-- [ ] `!addquote @quotee "quote text"`
-- [ ] `!removequote 5`
-
-### Moderation Commands
-- [ ] `!clear 10` - Delete messages
-- [ ] `!massmove "Source" "Dest"`
-- [ ] `!set prefix ?` - Change prefix
-- [ ] `!set invitechannel #channel`
-
-### Reaction Role Commands
-- [ ] `!addreactionrole <message_id> :emoji: <role_id>`
-- [ ] `!removereactionrole <message_id> :emoji:`
-- [ ] `!removeallreactionroles <message_id>`
-
-### Voice Commands
-- [ ] `!createjumpchannel "Channel Name"`
-- [ ] `!deletejumpchannel <channel_id>`
-- [ ] `!listjumpchannels`
-
-### Admin Commands (Owner Only)
-- [ ] `!dm @user message` - Send DM
-- [ ] `!shutdown` - Stop bot
+- [x] Shows all active jump channels
+- [x] Handles server with no jump channels
 
 ---
 

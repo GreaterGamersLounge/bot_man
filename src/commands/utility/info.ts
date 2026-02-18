@@ -1,6 +1,6 @@
 import { EmbedBuilder, SlashCommandBuilder, version as djsVersion } from 'discord.js';
 import { getConfig } from '../../lib/config.js';
-import type { PrefixCommand, SlashCommand } from '../../types/index.js';
+import type { SlashCommand } from '../../types/index.js';
 
 const slash: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -31,35 +31,6 @@ const slash: SlashCommand = {
   },
 };
 
-const prefix: PrefixCommand = {
-  name: 'info',
-  aliases: ['botinfo', 'stats'],
-  description: 'Get information about the bot',
-
-  async execute(message) {
-    const config = getConfig();
-    const client = message.client;
-    const uptime = formatUptime(client.uptime ?? 0);
-
-    const embed = new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('Bot_Man Information')
-      .setDescription('A Discord bot for server management and fun commands.')
-      .addFields(
-        { name: '📊 Servers', value: client.guilds.cache.size.toString(), inline: true },
-        { name: '👥 Users', value: client.users.cache.size.toString(), inline: true },
-        { name: '⏱️ Uptime', value: uptime, inline: true },
-        { name: '🔧 discord.js', value: `v${djsVersion}`, inline: true },
-        { name: '📦 Node.js', value: process.version, inline: true },
-        { name: '🌍 Environment', value: config.nodeEnv, inline: true }
-      )
-      .setFooter({ text: `Requested by ${message.author.tag}` })
-      .setTimestamp();
-
-    await message.reply({ embeds: [embed] });
-  },
-};
-
 /**
  * Format milliseconds into a human-readable uptime string
  */
@@ -86,4 +57,4 @@ function formatUptime(ms: number): string {
   return parts.join(' ');
 }
 
-export default { slash, prefix };
+export default { slash };

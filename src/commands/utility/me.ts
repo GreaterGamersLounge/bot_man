@@ -1,9 +1,8 @@
 import {
     ChatInputCommandInteraction,
-    Message,
     SlashCommandBuilder,
 } from 'discord.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 // Slash command
 export const slashCommand: SlashCommand = {
@@ -21,22 +20,3 @@ export const slashCommand: SlashCommand = {
     }
   },
 };
-
-// Legacy prefix command
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'me',
-    aliases: [],
-    description: 'Display your username',
-    usage: 'me',
-    async execute(message: Message): Promise<void> {
-      const member = message.member;
-
-      if (member) {
-        await message.reply(member.displayName);
-      } else {
-        await message.reply(message.author.username);
-      }
-    },
-  },
-];

@@ -1,7 +1,6 @@
 import type {
     ChatInputCommandInteraction,
     GuildMember,
-    Message,
     PermissionResolvable,
 } from 'discord.js';
 import { PermissionFlagsBits } from 'discord.js';
@@ -73,32 +72,6 @@ export async function checkCommandPermissions(
         content: 'You do not have permission to use this command.',
         ephemeral: true,
       });
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Permission check for legacy prefix commands
- */
-export async function checkPrefixCommandPermissions(
-  message: Message,
-  requiredPermissions?: PermissionResolvable[],
-  ownerOnly?: boolean
-): Promise<boolean> {
-  // Check owner-only commands
-  if (ownerOnly && !isOwner(message.author.id)) {
-    await message.reply('This command can only be used by the bot owner.');
-    return false;
-  }
-
-  // Check required permissions
-  if (requiredPermissions && requiredPermissions.length > 0) {
-    const member = message.member;
-    if (!hasPermissions(member, requiredPermissions)) {
-      await message.reply('You do not have permission to use this command.');
       return false;
     }
   }

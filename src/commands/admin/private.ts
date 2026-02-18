@@ -1,10 +1,9 @@
 import {
-    ChatInputCommandInteraction,
-    Message,
-    SlashCommandBuilder,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
 } from 'discord.js';
 import { logger } from '../../lib/logger.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 // Slash command
 export const slashCommand: SlashCommand = {
@@ -28,21 +27,3 @@ export const slashCommand: SlashCommand = {
     }
   },
 };
-
-// Legacy prefix command
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'pm',
-    aliases: ['private'],
-    description: 'Send a private message to yourself',
-    usage: 'pm',
-    async execute(message: Message): Promise<void> {
-      try {
-        await message.author.send('Go away...');
-      } catch (error) {
-        logger.error('Failed to send DM:', error);
-        await message.reply('Failed to send DM. Please make sure your DMs are open.');
-      }
-    },
-  },
-];

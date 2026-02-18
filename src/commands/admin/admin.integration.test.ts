@@ -110,64 +110,6 @@ describe('Admin Command Integration Tests', () => {
     });
   });
 
-  describe('!dm prefix command', () => {
-    it('should send DM when used by owner', async () => {
-      const { prefixCommands } = await import('./dm.js');
-      const dmCommand = prefixCommands[0]!;
-
-      const mockSend = vi.fn().mockResolvedValue({});
-      const mockReply = vi.fn();
-      const mockFetch = vi.fn().mockResolvedValue({
-        tag: 'Target#1234',
-        send: mockSend,
-      });
-
-      const message = {
-        author: { id: '123456789012345678', tag: 'Owner#0001' },
-        client: { users: { fetch: mockFetch } },
-        reply: mockReply,
-      };
-
-      await dmCommand.execute(message as never, ['<@111111111111111111>', 'Hello', 'World']);
-
-      expect(mockFetch).toHaveBeenCalledWith('111111111111111111');
-      expect(mockSend).toHaveBeenCalledWith('Hello World');
-      expect(mockReply).toHaveBeenCalledWith('Successfully sent DM to Target#1234');
-    });
-
-    it('should silently ignore non-owner users', async () => {
-      const { prefixCommands } = await import('./dm.js');
-      const dmCommand = prefixCommands[0]!;
-
-      const mockReply = vi.fn();
-
-      const message = {
-        author: { id: '999999999999999999' },
-        reply: mockReply,
-      };
-
-      await dmCommand.execute(message as never, ['<@111>', 'test']);
-
-      expect(mockReply).not.toHaveBeenCalled();
-    });
-
-    it('should show usage when args are missing', async () => {
-      const { prefixCommands } = await import('./dm.js');
-      const dmCommand = prefixCommands[0]!;
-
-      const mockReply = vi.fn();
-
-      const message = {
-        author: { id: '123456789012345678' },
-        reply: mockReply,
-      };
-
-      await dmCommand.execute(message as never, ['@user']);
-
-      expect(mockReply).toHaveBeenCalledWith('Usage: !dm @user [message]');
-    });
-  });
-
   describe('/private command', () => {
     it('should send DM to invoking user', async () => {
       const { slashCommand } = await import('./private.js');
@@ -210,43 +152,6 @@ describe('Admin Command Integration Tests', () => {
         content: 'Failed to send DM. Please make sure your DMs are open.',
         ephemeral: true,
       });
-    });
-  });
-
-  describe('!pm prefix command', () => {
-    it('should send DM to invoking user', async () => {
-      const { prefixCommands } = await import('./private.js');
-      const pmCommand = prefixCommands[0]!;
-
-      const mockSend = vi.fn().mockResolvedValue({});
-
-      const message = {
-        author: { send: mockSend },
-        reply: vi.fn(),
-      };
-
-      await pmCommand.execute(message as never, []);
-
-      expect(mockSend).toHaveBeenCalledWith('Go away...');
-    });
-
-    it('should handle DM failures', async () => {
-      const { prefixCommands } = await import('./private.js');
-      const pmCommand = prefixCommands[0]!;
-
-      const mockSend = vi.fn().mockRejectedValue(new Error('DMs disabled'));
-      const mockReply = vi.fn();
-
-      const message = {
-        author: { send: mockSend },
-        reply: mockReply,
-      };
-
-      await pmCommand.execute(message as never, []);
-
-      expect(mockReply).toHaveBeenCalledWith(
-        'Failed to send DM. Please make sure your DMs are open.'
-      );
     });
   });
 
@@ -298,24 +203,6 @@ describe('Admin Command Integration Tests', () => {
 
       vi.useRealTimers();
       mockExit.mockRestore();
-    });
-  });
-
-  describe('!shutdown prefix command', () => {
-    it('should silently ignore non-owner users', async () => {
-      const { prefixCommands } = await import('./shutdown.js');
-      const shutdownCommand = prefixCommands[0]!;
-
-      const mockReply = vi.fn();
-
-      const message = {
-        author: { id: '999999999999999999' },
-        reply: mockReply,
-      };
-
-      await shutdownCommand.execute(message as never, []);
-
-      expect(mockReply).not.toHaveBeenCalled();
     });
   });
 });

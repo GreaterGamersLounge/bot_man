@@ -271,42 +271,4 @@ describe('Voice Command Integration Tests', () => {
       });
     });
   });
-
-  describe('!createjumpchannel prefix command', () => {
-    it('should reject when not in a guild', async () => {
-      const { prefixCommands } = await import('./jumpchannel.js');
-      const createCommand = prefixCommands[0]!;
-
-      const mockReply = vi.fn();
-
-      const message = {
-        guild: null,
-        reply: mockReply,
-      };
-
-      await createCommand.execute(message as never, []);
-
-      expect(mockReply).toHaveBeenCalledWith(
-        'This command can only be used in a server.'
-      );
-    });
-
-    it('should show usage when name is missing', async () => {
-      const { prefixCommands } = await import('./jumpchannel.js');
-      const createCommand = prefixCommands[0]!;
-
-      const mockReply = vi.fn();
-
-      const message = {
-        guild: { id: '123' },
-        reply: mockReply,
-      };
-
-      await createCommand.execute(message as never, []);
-
-      expect(mockReply).toHaveBeenCalledWith(
-        'Please supply a jump channel name'
-      );
-    });
-  });
 });

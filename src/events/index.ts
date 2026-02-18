@@ -8,7 +8,6 @@ import guildMemberAdd from './guildMemberAdd.js';
 import interactionCreate from './interactionCreate.js';
 import inviteCreate from './inviteCreate.js';
 import inviteDelete from './inviteDelete.js';
-import messageCreate from './messageCreate.js';
 import messageReactionAdd from './messageReactionAdd.js';
 import messageReactionRemove from './messageReactionRemove.js';
 import ready from './ready.js';
@@ -20,7 +19,6 @@ import voiceStateUpdate from './voiceStateUpdate.js';
 const events: BotEvent[] = [
   ready,
   interactionCreate,
-  messageCreate,
   guildCreate,
   guildMemberAdd,
   messageReactionAdd,

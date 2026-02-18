@@ -1,12 +1,11 @@
 import {
   ChatInputCommandInteraction,
-  Message,
   OAuth2Scopes,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from 'discord.js';
 import { config } from '../../lib/config.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 /**
  * Generate bot invite URL with full admin permissions
@@ -39,18 +38,3 @@ export const slashCommand: SlashCommand = {
     });
   },
 };
-
-// Legacy prefix command
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'invite',
-    aliases: [],
-    description: 'Get the bot invite URL',
-    usage: 'invite',
-    async execute(message: Message): Promise<void> {
-      const inviteUrl = generateInviteUrl(config.clientId);
-
-      await message.reply(`Invite me to your server: ${inviteUrl}`);
-    },
-  },
-];

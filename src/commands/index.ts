@@ -1,6 +1,6 @@
 import type { BotClient } from '../bot.js';
 import { logger } from '../lib/logger.js';
-import type { PrefixCommand, SlashCommand } from '../types/index.js';
+import type { SlashCommand } from '../types/index.js';
 
 // Import commands from subdirectories
 // Utility commands
@@ -33,7 +33,6 @@ import * as shutdown from './admin/shutdown.js';
  */
 interface OldCommandModule {
   slash?: SlashCommand;
-  prefix?: PrefixCommand;
 }
 
 /**
@@ -41,7 +40,6 @@ interface OldCommandModule {
  */
 interface NewCommandModule {
   slashCommand?: SlashCommand;
-  prefixCommands?: PrefixCommand[];
 }
 
 type CommandModule = OldCommandModule | NewCommandModule;
@@ -50,15 +48,14 @@ type CommandModule = OldCommandModule | NewCommandModule;
  * Normalize command module to unified format
  */
 function normalizeModule(module: CommandModule): NewCommandModule {
-  // New format - has slashCommand or prefixCommands
-  if ('slashCommand' in module || 'prefixCommands' in module) {
+  // New format - has slashCommand
+  if ('slashCommand' in module) {
     return module as NewCommandModule;
   }
-  // Old format - has slash or prefix
+  // Old format - has slash
   const oldModule = module as OldCommandModule;
   return {
     slashCommand: oldModule.slash,
-    prefixCommands: oldModule.prefix ? [oldModule.prefix] : undefined,
   };
 }
 
@@ -104,31 +101,6 @@ export async function loadCommands(client: BotClient): Promise<void> {
       }
       client.slashCommands.set(name, module.slashCommand);
       logger.debug(`Registered slash command: /${name}`);
-    }
-
-    // Register prefix commands (may be multiple per module)
-    if (module.prefixCommands) {
-      for (const prefixCmd of module.prefixCommands) {
-        const name = prefixCmd.name;
-        if (client.prefixCommands.has(name)) {
-          logger.warn(`Duplicate prefix command name: ${name}`);
-          continue;
-        }
-        client.prefixCommands.set(name, prefixCmd);
-        logger.debug(`Registered prefix command: !${name}`);
-
-        // Register aliases
-        if (prefixCmd.aliases) {
-          for (const alias of prefixCmd.aliases) {
-            if (client.aliases.has(alias)) {
-              logger.warn(`Duplicate alias: ${alias}`);
-              continue;
-            }
-            client.aliases.set(alias, name);
-            logger.debug(`Registered alias: !${alias} -> !${name}`);
-          }
-        }
-      }
     }
   }
 }

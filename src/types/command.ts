@@ -1,7 +1,6 @@
 import type {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
-    Message,
     PermissionResolvable,
     SlashCommandBuilder,
     SlashCommandSubcommandsOnlyBuilder,
@@ -24,32 +23,4 @@ export interface SlashCommand {
   permissions?: PermissionResolvable[];
   /** Whether this command is owner-only */
   ownerOnly?: boolean;
-}
-
-/**
- * Represents a legacy prefix command (for backward compatibility)
- */
-export interface PrefixCommand {
-  /** The command name (without prefix) */
-  name: string;
-  /** Alternative names for the command */
-  aliases?: string[];
-  /** Brief description of what the command does */
-  description: string;
-  /** Usage information */
-  usage?: string;
-  /** The function to execute when the command is invoked */
-  execute: (message: Message, args: string[]) => Promise<void>;
-  /** Required permissions to use this command */
-  permissions?: PermissionResolvable[];
-  /** Whether this command is owner-only */
-  ownerOnly?: boolean;
-}
-
-/**
- * Combined command type that supports both slash and prefix commands
- */
-export interface Command {
-  slash?: SlashCommand;
-  prefix?: PrefixCommand;
 }

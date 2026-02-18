@@ -2,14 +2,13 @@ import {
     AutocompleteInteraction,
     ChannelType,
     ChatInputCommandInteraction,
-    Message,
     PermissionFlagsBits,
     SlashCommandBuilder,
     VoiceChannel,
 } from 'discord.js';
 import { levenshtein } from '../../lib/levenshtein.js';
 import { logger } from '../../lib/logger.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 /**
  * Find the closest matching voice channel by name
@@ -181,66 +180,3 @@ export const slashCommand: SlashCommand = {
     );
   },
 };
-
-// Legacy prefix command
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'massmove',
-    aliases: ['mm'],
-    description: 'Move all users from one voice channel to another',
-    usage: 'massmove [source_channel] [destination_channel]',
-    permissions: ['MoveMembers'],
-    async execute(message: Message, args: string[]): Promise<void> {
-      if (!message.guild) {
-        await message.reply('This command can only be used in a server.');
-        return;
-      }
-
-      if (args.length < 2) {
-        await message.reply('Usage: !massmove [source_channel] [destination_channel]');
-        return;
-      }
-
-      const sourceChannelName = args[0]!;
-      const destChannelName = args[1]!;
-
-      const voiceChannels = getVoiceChannels(message.guild);
-
-      const sourceChannel = findClosestChannel(sourceChannelName, voiceChannels);
-      const destChannel = findClosestChannel(destChannelName, voiceChannels);
-
-      if (!sourceChannel || !destChannel) {
-        await message.reply('Could not find one or both voice channels.');
-        return;
-      }
-
-      // Get users in the source channel
-      const users = sourceChannel.members;
-      const userCount = users.size;
-
-      if (userCount === 0) {
-        await message.reply(`No users in ${sourceChannel.name} to move.`);
-        return;
-      }
-
-      let movedCount = 0;
-
-      // Move each user
-      for (const [, member] of users) {
-        try {
-          await member.voice.setChannel(destChannel);
-          movedCount++;
-        } catch (error) {
-          logger.warn(`Failed to move ${member.displayName}:`, error);
-        }
-      }
-
-      const userWord = movedCount === 1 ? 'user' : 'users';
-      await message.reply(`Moving ${movedCount} ${userWord} to ${destChannel.name}`);
-
-      logger.info(
-        `Massmove: ${message.author.tag} moved ${movedCount} users from ${sourceChannel.name} to ${destChannel.name}`
-      );
-    },
-  },
-];

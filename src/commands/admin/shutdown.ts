@@ -1,11 +1,10 @@
 import {
     ChatInputCommandInteraction,
-    Message,
     SlashCommandBuilder,
 } from 'discord.js';
 import { config } from '../../lib/config.js';
 import { logger } from '../../lib/logger.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 // Slash command
 export const slashCommand: SlashCommand = {
@@ -33,27 +32,3 @@ export const slashCommand: SlashCommand = {
     }, 1000);
   },
 };
-
-// Legacy prefix command
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'shutdown',
-    aliases: ['exit'],
-    description: 'Shutdown the bot (owner only)',
-    usage: 'shutdown',
-    async execute(message: Message): Promise<void> {
-      // Only allow bot owner
-      if (message.author.id !== config.ownerId) {
-        return; // Silently ignore
-      }
-
-      logger.warn(`Shutdown initiated by ${message.author.tag}`);
-
-      await message.reply('Bot is shutting down...');
-
-      setTimeout(() => {
-        process.exit(0);
-      }, 1000);
-    },
-  },
-];

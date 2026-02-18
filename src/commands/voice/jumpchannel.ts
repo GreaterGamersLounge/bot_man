@@ -1,14 +1,13 @@
 import {
     ChannelType,
     ChatInputCommandInteraction,
-    Message,
     PermissionFlagsBits,
     SlashCommandBuilder,
     VoiceChannel,
 } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
-import type { PrefixCommand, SlashCommand } from '../../types/command.js';
+import type { SlashCommand } from '../../types/command.js';
 
 // Slash command with subcommands
 export const slashCommand: SlashCommand = {
@@ -246,109 +245,3 @@ async function handleListJumpChannels(
     ephemeral: true,
   });
 }
-
-// Legacy prefix commands
-export const prefixCommands: PrefixCommand[] = [
-  {
-    name: 'createjumpchannel',
-    aliases: [],
-    description: 'Create a new temporary voice jump channel',
-    usage: 'createjumpchannel [channel name]',
-    permissions: ['Administrator'],
-    async execute(message: Message, args: string[]): Promise<void> {
-      if (!message.guild) {
-        await message.reply('This command can only be used in a server.');
-        return;
-      }
-
-      if (args.length === 0) {
-        await message.reply('Please supply a jump channel name');
-        return;
-      }
-
-      const channelName = args.join(' ');
-      const guild = message.guild;
-
-      // Create the voice channel
-      const newChannel = await guild.channels.create({
-        name: channelName,
-        type: ChannelType.GuildVoice,
-        reason: 'Creating temporary voice jump channel',
-      });
-
-      // Record in database
-      await prisma.temporary_voice_channel.create({
-        data: {
-          server_uid: BigInt(guild.id),
-          creator_uid: BigInt(message.author.id),
-          channel_uid: BigInt(newChannel.id),
-          is_jump_channel: true,
-          active: true,
-        },
-      });
-
-      await message.reply(`Temporary jump channel \`${channelName}\` created`);
-
-      logger.info(`Jump channel "${channelName}" created by ${message.author.tag} in ${guild.name}`);
-    },
-  },
-  {
-    name: 'deletejumpchannel',
-    aliases: [],
-    description: 'Delete a temporary voice jump channel',
-    usage: 'deletejumpchannel [channel name]',
-    permissions: ['Administrator'],
-    async execute(message: Message, args: string[]): Promise<void> {
-      if (!message.guild) {
-        await message.reply('This command can only be used in a server.');
-        return;
-      }
-
-      if (args.length === 0) {
-        await message.reply('Please supply a jump channel name');
-        return;
-      }
-
-      const channelName = args.join(' ');
-      const guild = message.guild;
-
-      // Find the Discord channel by name
-      const discordChannel = guild.channels.cache.find(
-        (c) => c.type === ChannelType.GuildVoice && c.name === channelName
-      ) as VoiceChannel | undefined;
-
-      if (!discordChannel) {
-        await message.reply('Channel not found.');
-        return;
-      }
-
-      // Find in database
-      const jumpChannel = await prisma.temporary_voice_channel.findFirst({
-        where: {
-          server_uid: BigInt(guild.id),
-          channel_uid: BigInt(discordChannel.id),
-          is_jump_channel: true,
-          active: true,
-        },
-      });
-
-      if (!jumpChannel) {
-        await message.reply('That channel is not a jump channel.');
-        return;
-      }
-
-      // Mark as inactive
-      await prisma.temporary_voice_channel.update({
-        where: { id: jumpChannel.id },
-        data: { active: false },
-      });
-
-      // Delete the channel
-      await discordChannel.delete('Jump channel deleted by admin');
-
-      await message.reply(`Temporary jump channel \`${channelName}\` deleted`);
-
-      logger.info(`Jump channel "${channelName}" deleted by ${message.author.tag} in ${guild.name}`);
-    },
-  },
-];
