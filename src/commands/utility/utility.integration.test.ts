@@ -34,7 +34,8 @@ vi.mock('discord.js', async () => {
 
 describe('Utility Commands Integration', () => {
   describe('/random command', () => {
-    let randomCommand: { slash: { execute: (interaction: unknown) => Promise<void> } };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let randomCommand: any;
 
     beforeEach(async () => {
       vi.resetModules();
@@ -54,7 +55,7 @@ describe('Utility Commands Integration', () => {
       await randomCommand.slash.execute(interaction);
 
       expect(mockReply).toHaveBeenCalledTimes(1);
-      const replyContent = mockReply.mock.calls[0][0] as string;
+      const replyContent = mockReply.mock.calls[0]?.[0] as string;
       expect(replyContent).toContain('🎲 Random number between 1 and 100:');
 
       // Extract the number and verify it's in range
@@ -81,7 +82,7 @@ describe('Utility Commands Integration', () => {
       await randomCommand.slash.execute(interaction);
 
       expect(mockReply).toHaveBeenCalledTimes(1);
-      const replyContent = mockReply.mock.calls[0][0] as string;
+      const replyContent = mockReply.mock.calls[0]?.[0] as string;
       expect(replyContent).toContain('between 50 and 60');
 
       const match = replyContent.match(/\*\*(\d+)\*\*/);
@@ -113,7 +114,8 @@ describe('Utility Commands Integration', () => {
   });
 
   describe('!random prefix command', () => {
-    let randomCommand: { prefix: { execute: (message: unknown, args: string[]) => Promise<void> } };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let randomCommand: any;
 
     beforeEach(async () => {
       vi.resetModules();
@@ -128,7 +130,7 @@ describe('Utility Commands Integration', () => {
       await randomCommand.prefix.execute(message, []);
 
       expect(mockReply).toHaveBeenCalledTimes(1);
-      const content = mockReply.mock.calls[0][0] as string;
+      const content = mockReply.mock.calls[0]?.[0] as string;
       expect(content).toContain('between 1 and 100');
     });
 
@@ -138,7 +140,7 @@ describe('Utility Commands Integration', () => {
 
       await randomCommand.prefix.execute(message, ['50']);
 
-      const content = mockReply.mock.calls[0][0] as string;
+      const content = mockReply.mock.calls[0]?.[0] as string;
       expect(content).toContain('between 1 and 50');
     });
 
@@ -148,7 +150,7 @@ describe('Utility Commands Integration', () => {
 
       await randomCommand.prefix.execute(message, ['10', '20']);
 
-      const content = mockReply.mock.calls[0][0] as string;
+      const content = mockReply.mock.calls[0]?.[0] as string;
       expect(content).toContain('between 10 and 20');
     });
 
@@ -162,7 +164,7 @@ describe('Utility Commands Integration', () => {
 
       // The command actually generates a random with defaults when parseInt fails
       // because NaN comparisons behave unexpectedly
-      const content = mockReply.mock.calls[0][0] as string;
+      const content = mockReply.mock.calls[0]?.[0] as string;
       expect(content).toContain('🎲 Random number');
     });
   });

@@ -67,6 +67,7 @@ describe('Voice Command Integration Tests', () => {
       const mockCreate = vi.fn().mockResolvedValue(mockChannel);
 
       mockPrisma.temporary_voice_channel.create.mockResolvedValue({} as never);
+      mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue(null);
 
       const mockReply = vi.fn();
 
@@ -80,6 +81,7 @@ describe('Voice Command Integration Tests', () => {
         options: {
           getSubcommand: vi.fn().mockReturnValue('create'),
           getString: vi.fn().mockReturnValue('Jump Channel'),
+          getChannel: vi.fn().mockReturnValue(null), // Not using existing channel
         },
         reply: mockReply,
         replied: false,
@@ -95,7 +97,77 @@ describe('Voice Command Integration Tests', () => {
       });
       expect(mockPrisma.temporary_voice_channel.create).toHaveBeenCalled();
       expect(mockReply).toHaveBeenCalledWith({
-        content: 'Temporary jump channel `Jump Channel` created',
+        content: '<#444444444444444444> created as a jump channel',
+        ephemeral: true,
+      });
+    });
+
+    it('should register an existing channel as a jump channel', async () => {
+      const { slashCommand } = await import('./jumpchannel.js');
+
+      const existingChannel = { id: '555555555555555555', name: 'Existing Voice', type: ChannelType.GuildVoice };
+
+      mockPrisma.temporary_voice_channel.create.mockResolvedValue({} as never);
+      mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue(null); // Not already a jump channel
+
+      const mockReply = vi.fn();
+
+      const interaction = {
+        guild: {
+          id: '123456789012345678',
+          name: 'Test Server',
+          channels: { create: vi.fn() }, // Should not be called
+        },
+        user: { id: '111111111111111111', tag: 'User#1234' },
+        options: {
+          getSubcommand: vi.fn().mockReturnValue('create'),
+          getString: vi.fn().mockReturnValue(null), // Not using name
+          getChannel: vi.fn().mockReturnValue(existingChannel), // Using existing channel
+        },
+        reply: mockReply,
+        replied: false,
+        deferred: false,
+      };
+
+      await slashCommand.execute(interaction as never);
+
+      // Should NOT create a new channel
+      expect(interaction.guild.channels.create).not.toHaveBeenCalled();
+      // Should register in database
+      expect(mockPrisma.temporary_voice_channel.create).toHaveBeenCalled();
+      expect(mockReply).toHaveBeenCalledWith({
+        content: '<#555555555555555555> designated as a jump channel',
+        ephemeral: true,
+      });
+    });
+
+    it('should reject when existing channel is already a jump channel', async () => {
+      const { slashCommand } = await import('./jumpchannel.js');
+
+      const existingChannel = { id: '555555555555555555', name: 'Already Jump', type: ChannelType.GuildVoice };
+
+      // Already exists as a jump channel
+      mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue({ discord_channel_id: existingChannel.id } as never);
+
+      const mockReply = vi.fn();
+
+      const interaction = {
+        guild: { id: '123456789012345678' },
+        user: { id: '111111111111111111', tag: 'User#1234' },
+        options: {
+          getSubcommand: vi.fn().mockReturnValue('create'),
+          getString: vi.fn().mockReturnValue(null),
+          getChannel: vi.fn().mockReturnValue(existingChannel),
+        },
+        reply: mockReply,
+        replied: false,
+        deferred: false,
+      };
+
+      await slashCommand.execute(interaction as never);
+
+      expect(mockReply).toHaveBeenCalledWith({
+        content: '<#555555555555555555> is already a jump channel.',
         ephemeral: true,
       });
     });

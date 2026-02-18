@@ -19,12 +19,19 @@ export const slashCommand: SlashCommand = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('create')
-        .setDescription('Create a new temporary voice jump channel')
+        .setDescription('Create a new jump channel or designate an existing one')
         .addStringOption((option) =>
           option
             .setName('name')
-            .setDescription('The name for the jump channel')
-            .setRequired(true)
+            .setDescription('The name for a NEW jump channel to create')
+            .setRequired(false)
+        )
+        .addChannelOption((option) =>
+          option
+            .setName('channel')
+            .setDescription('An EXISTING voice channel to use as a jump channel')
+            .setRequired(false)
+            .addChannelTypes(ChannelType.GuildVoice)
         )
     )
     .addSubcommand((subcommand) =>
@@ -86,33 +93,76 @@ export const slashCommand: SlashCommand = {
 async function handleCreateJumpChannel(
   interaction: ChatInputCommandInteraction
 ): Promise<void> {
-  const channelName = interaction.options.getString('name', true);
+  const channelName = interaction.options.getString('name');
+  const existingChannel = interaction.options.getChannel('channel') as VoiceChannel | null;
   const guild = interaction.guild!;
 
-  // Create the voice channel
-  const newChannel = await guild.channels.create({
-    name: channelName,
-    type: ChannelType.GuildVoice,
-    reason: 'Creating temporary voice jump channel',
-  });
+  // Must provide either name or channel, but not both
+  if (!channelName && !existingChannel) {
+    await interaction.reply({
+      content: 'Please provide either a `name` to create a new channel, or select an existing `channel`.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (channelName && existingChannel) {
+    await interaction.reply({
+      content: 'Please provide either a `name` OR a `channel`, not both.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  let targetChannel: VoiceChannel;
+
+  if (existingChannel) {
+    // Check if it's already a jump channel
+    const existing = await prisma.temporary_voice_channel.findFirst({
+      where: {
+        server_uid: BigInt(guild.id),
+        channel_uid: BigInt(existingChannel.id),
+        is_jump_channel: true,
+        active: true,
+      },
+    });
+
+    if (existing) {
+      await interaction.reply({
+        content: `<#${existingChannel.id}> is already a jump channel.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    targetChannel = existingChannel;
+  } else {
+    // Create a new voice channel
+    targetChannel = await guild.channels.create({
+      name: channelName!,
+      type: ChannelType.GuildVoice,
+      reason: 'Creating temporary voice jump channel',
+    });
+  }
 
   // Record in database
   await prisma.temporary_voice_channel.create({
     data: {
       server_uid: BigInt(guild.id),
       creator_uid: BigInt(interaction.user.id),
-      channel_uid: BigInt(newChannel.id),
+      channel_uid: BigInt(targetChannel.id),
       is_jump_channel: true,
       active: true,
     },
   });
 
+  const action = existingChannel ? 'designated as' : 'created as';
   await interaction.reply({
-    content: `Temporary jump channel \`${channelName}\` created`,
+    content: `<#${targetChannel.id}> ${action} a jump channel`,
     ephemeral: true,
   });
 
-  logger.info(`Jump channel "${channelName}" created by ${interaction.user.tag} in ${guild.name}`);
+  logger.info(`Jump channel "${targetChannel.name}" ${action} by ${interaction.user.tag} in ${guild.name}`);
 }
 
 /**
