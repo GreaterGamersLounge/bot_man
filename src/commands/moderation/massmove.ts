@@ -1,9 +1,14 @@
 import type {
-    AutocompleteInteraction,
-    ChatInputCommandInteraction,
-    VoiceChannel,
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+  VoiceChannel,
 } from 'discord.js';
-import { ChannelType, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+  ChannelType,
+  InteractionContextType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { levenshtein } from '../../lib/levenshtein.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';

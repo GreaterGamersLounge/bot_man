@@ -15,7 +15,11 @@ export const slashCommand: SlashCommand = {
     .addStringOption((option) =>
       option.setName('message').setDescription('The message to send').setRequired(true)
     )
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Only allow bot owner

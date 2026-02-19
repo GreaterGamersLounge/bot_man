@@ -5,7 +5,11 @@ const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('random')
     .setDescription('Generate a random number')
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel])
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ])
     .addIntegerOption((option) =>
       option.setName('min').setDescription('Minimum value (default: 1)').setRequired(false)
     )

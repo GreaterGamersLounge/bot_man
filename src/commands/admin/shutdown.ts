@@ -9,7 +9,11 @@ export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('shutdown')
     .setDescription('Shutdown the bot (owner only)')
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Only allow bot owner

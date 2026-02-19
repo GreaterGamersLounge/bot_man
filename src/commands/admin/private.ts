@@ -8,7 +8,11 @@ export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('private')
     .setDescription('Send a private message to yourself')
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     try {

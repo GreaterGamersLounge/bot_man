@@ -108,9 +108,7 @@ function createPageJumpModal(totalPages: number): ModalBuilder {
 
   const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput);
 
-  const modal = new ModalBuilder()
-    .setCustomId('quote_page_jump')
-    .setTitle('Jump to Page');
+  const modal = new ModalBuilder().setCustomId('quote_page_jump').setTitle('Jump to Page');
 
   // eslint-disable-next-line @typescript-eslint/no-deprecated
   modal.setComponents([actionRow]);
@@ -266,7 +264,11 @@ export const slashCommand: SlashCommand = {
           option.setName('user').setDescription('Filter quotes by this user')
         )
     )
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]) as SlashCommandBuilder,
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const subcommand = interaction.options.getSubcommand();

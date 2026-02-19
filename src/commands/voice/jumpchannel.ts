@@ -1,5 +1,10 @@
 import type { ChatInputCommandInteraction, Guild, VoiceChannel } from 'discord.js';
-import { ChannelType, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+  ChannelType,
+  InteractionContextType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';

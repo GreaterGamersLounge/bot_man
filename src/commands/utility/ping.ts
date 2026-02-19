@@ -5,7 +5,11 @@ const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Check bot latency and response time')
-    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction) {
     const response = await interaction.reply({
