@@ -12,11 +12,17 @@ vi.mock('discord.js', async () => {
   const actual = await vi.importActual('discord.js');
   return {
     ...actual,
-    SlashCommandBuilder: vi.fn().mockImplementation(() => ({
-      setName: vi.fn().mockReturnThis(),
-      setDescription: vi.fn().mockReturnThis(),
-      setContexts: vi.fn().mockReturnThis(),
-      addIntegerOption: vi.fn().mockImplementation((fn: (opt: unknown) => unknown) => {
+    SlashCommandBuilder: class MockSlashCommandBuilder {
+      setName() {
+        return this;
+      }
+      setDescription() {
+        return this;
+      }
+      setContexts() {
+        return this;
+      }
+      addIntegerOption(fn: (opt: unknown) => unknown) {
         fn({
           setName: vi.fn().mockReturnThis(),
           setDescription: vi.fn().mockReturnThis(),
@@ -24,15 +30,12 @@ vi.mock('discord.js', async () => {
           setMinValue: vi.fn().mockReturnThis(),
           setMaxValue: vi.fn().mockReturnThis(),
         });
-        return {
-          setName: vi.fn().mockReturnThis(),
-          setDescription: vi.fn().mockReturnThis(),
-          setContexts: vi.fn().mockReturnThis(),
-          addIntegerOption: vi.fn().mockReturnThis(),
-        };
-      }),
-      toJSON: vi.fn().mockReturnValue({}),
-    })),
+        return this;
+      }
+      toJSON() {
+        return {};
+      }
+    },
   };
 });
 
