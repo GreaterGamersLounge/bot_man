@@ -175,9 +175,7 @@ describe('UserService', () => {
 
       const result = await UserService.getWithInvites(BigInt('222222222222222222'));
 
-      expect(
-        (result as Record<string, unknown> | null)?.invite_discord_users
-      ).toEqual([]);
+      expect((result as Record<string, unknown> | null)?.invite_discord_users).toEqual([]);
     });
 
     it('should return null when user not found', async () => {

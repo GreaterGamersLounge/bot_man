@@ -224,10 +224,10 @@ This document provides a comprehensive manual testing checklist for verifying th
 
 **Test Environment:**
 
-- Discord Server ID: ******\_\_\_******
-- Bot User ID: ******\_\_\_******
-- Test Date: ******\_\_\_******
-- Tester: ******\_\_\_******
+- Discord Server ID: **\*\***\_\_\_**\*\***
+- Bot User ID: **\*\***\_\_\_**\*\***
+- Test Date: **\*\***\_\_\_**\*\***
+- Tester: **\*\***\_\_\_**\*\***
 
 **Issues Found:**
 
