@@ -80,8 +80,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    profiles:
-      - tools # Only starts with: docker compose --profile tools up
 
 volumes:
   postgres_data:
