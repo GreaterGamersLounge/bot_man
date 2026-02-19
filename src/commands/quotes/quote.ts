@@ -5,7 +5,10 @@ import {
   ButtonStyle,
   ComponentType,
   EmbedBuilder,
+  ModalBuilder,
   SlashCommandBuilder,
+  TextInputBuilder,
+  TextInputStyle,
 } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
@@ -14,6 +17,7 @@ import type { SlashCommand } from '../../types/command.js';
 // Timeout for pagination buttons (2 minutes)
 const PAGINATION_TIMEOUT = 120_000;
 const EMBED_COLOR = 0x3fb426; // Green color matching Ruby version
+const QUOTES_PER_PAGE = 5; // Number of quotes to show per page in list view
 
 /**
  * Helper to get all quotes for pagination
@@ -61,28 +65,95 @@ function getUserAvatarUrl(member: GuildMember | User | null): string | null {
  */
 function createPaginationButtons(
   currentIndex: number,
-  totalQuotes: number,
+  totalItems: number,
   disabled = false
 ): ActionRowBuilder<ButtonBuilder> {
   const prevButton = new ButtonBuilder()
     .setCustomId('quote_prev')
     .setEmoji('◀️')
     .setStyle(ButtonStyle.Secondary)
-    .setDisabled(disabled || totalQuotes <= 1);
+    .setDisabled(disabled || totalItems <= 1);
 
   const nextButton = new ButtonBuilder()
     .setCustomId('quote_next')
     .setEmoji('▶️')
     .setStyle(ButtonStyle.Secondary)
-    .setDisabled(disabled || totalQuotes <= 1);
+    .setDisabled(disabled || totalItems <= 1);
 
   const pageIndicator = new ButtonBuilder()
     .setCustomId('quote_page')
-    .setLabel(`${currentIndex + 1} / ${totalQuotes}`)
+    .setLabel(`${currentIndex + 1} / ${totalItems}`)
     .setStyle(ButtonStyle.Secondary)
-    .setDisabled(true);
+    .setDisabled(disabled || totalItems <= 1);
 
   return new ActionRowBuilder<ButtonBuilder>().addComponents(prevButton, pageIndicator, nextButton);
+}
+
+/**
+ * Create a modal for jumping to a specific page
+ */
+function createPageJumpModal(totalPages: number): ModalBuilder {
+  const modal = new ModalBuilder()
+    .setCustomId('quote_page_jump')
+    .setTitle('Jump to Page');
+
+  const pageInput = new TextInputBuilder()
+    .setCustomId('page_number')
+    .setLabel(`Enter page number (1-${totalPages})`)
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder(`1-${totalPages}`)
+    .setRequired(true)
+    .setMinLength(1)
+    .setMaxLength(String(totalPages).length + 1);
+
+  const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput);
+  modal.addComponents(actionRow);
+
+  return modal;
+}
+
+/**
+ * Create a combined embed for displaying multiple quotes on a page
+ */
+async function createQuoteListEmbed(
+  quotes: Array<{
+    id: bigint;
+    quote: string | null;
+    quoter_uid: bigint | null;
+    quotee_uid: bigint | null;
+    created_at: Date;
+  }>,
+  interaction: ChatInputCommandInteraction,
+  pageNumber: number,
+  totalPages: number
+): Promise<EmbedBuilder> {
+  const guild = interaction.guild;
+  const lines: string[] = [];
+
+  for (const quote of quotes) {
+    let quoteeName = `User ${quote.quotee_uid}`;
+    if (guild && quote.quotee_uid) {
+      try {
+        const member = await guild.members.fetch(quote.quotee_uid.toString()).catch(() => null);
+        if (member) quoteeName = member.displayName;
+      } catch {
+        // Member not found
+      }
+    }
+
+    // Format: **#ID - QuoteeName**: "quote text"
+    const truncatedQuote =
+      quote.quote && quote.quote.length > 100
+        ? quote.quote.substring(0, 100) + '...'
+        : (quote.quote ?? '');
+    lines.push(`**#${quote.id} - ${quoteeName}**: "${truncatedQuote}"`);
+  }
+
+  return new EmbedBuilder()
+    .setColor(EMBED_COLOR)
+    .setTitle('Quote List')
+    .setDescription(lines.join('\n\n'))
+    .setFooter({ text: `Page ${pageNumber} of ${totalPages}` });
 }
 
 /**
@@ -294,6 +365,42 @@ async function handleGetQuote(
       return;
     }
 
+    // Handle page jump modal
+    if (buttonInteraction.customId === 'quote_page') {
+      const modal = createPageJumpModal(quotes.length);
+      await buttonInteraction.showModal(modal);
+
+      try {
+        const modalInteraction = await buttonInteraction.awaitModalSubmit({
+          time: 60_000,
+          filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
+        });
+
+        const pageInput = modalInteraction.fields.getTextInputValue('page_number');
+        const pageNumber = parseInt(pageInput, 10);
+
+        if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > quotes.length) {
+          await modalInteraction.reply({
+            content: `Please enter a valid page number between 1 and ${quotes.length}.`,
+            ephemeral: true,
+          });
+          return;
+        }
+
+        currentIndex = pageNumber - 1;
+        const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+        const newButtons = createPaginationButtons(currentIndex, quotes.length);
+
+        await modalInteraction.update({
+          embeds: [newEmbed],
+          components: [newButtons],
+        });
+      } catch {
+        // Modal timed out or was dismissed
+      }
+      return;
+    }
+
     // Update the index based on which button was pressed
     if (buttonInteraction.customId === 'quote_prev') {
       currentIndex = currentIndex <= 0 ? quotes.length - 1 : currentIndex - 1;
@@ -383,7 +490,7 @@ async function handleRemoveQuote(
 }
 
 /**
- * Handle /quote list
+ * Handle /quote list - with pagination in DM (5 quotes per page)
  */
 async function handleListQuotes(
   interaction: ChatInputCommandInteraction,
@@ -393,18 +500,8 @@ async function handleListQuotes(
 
   await interaction.deferReply({ ephemeral: true });
 
-  const whereClause: { server_uid: bigint; quotee_uid?: bigint } = {
-    server_uid: serverUid,
-  };
-
-  if (user) {
-    whereClause.quotee_uid = BigInt(user.id);
-  }
-
-  const quotes = await prisma.quote.findMany({
-    where: whereClause,
-    orderBy: { created_at: 'asc' },
-  });
+  const quoteeUid = user ? BigInt(user.id) : undefined;
+  const quotes = await getAllQuotes(serverUid, quoteeUid);
 
   if (quotes.length === 0) {
     await interaction.editReply('No quotes found.');
@@ -412,17 +509,112 @@ async function handleListQuotes(
   }
 
   try {
-    // Send quotes via DM
+    // Send paginated quotes via DM
     const dmChannel = await interaction.user.createDM();
 
-    for (const quote of quotes) {
-      const embed = await createQuoteEmbed(quote, interaction);
-      await dmChannel.send({ embeds: [embed] });
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
+    const totalPages = Math.ceil(quotes.length / QUOTES_PER_PAGE);
+    let currentPage = 0;
+
+    const getPageQuotes = (page: number) => {
+      const start = page * QUOTES_PER_PAGE;
+      return quotes.slice(start, start + QUOTES_PER_PAGE);
+    };
+
+    const embed = await createQuoteListEmbed(
+      getPageQuotes(currentPage),
+      interaction,
+      currentPage + 1,
+      totalPages
+    );
+    const buttons = createPaginationButtons(currentPage, totalPages);
+
+    const dmMessage = await dmChannel.send({
+      embeds: [embed],
+      components: [buttons],
+    });
 
     await interaction.editReply('Please check your direct messages.');
+
+    // Only create collector if there are multiple pages
+    if (totalPages <= 1) return;
+
+    const collector = dmMessage.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: PAGINATION_TIMEOUT,
+    });
+
+    collector.on('collect', async (buttonInteraction) => {
+      // Handle page jump modal
+      if (buttonInteraction.customId === 'quote_page') {
+        const modal = createPageJumpModal(totalPages);
+        await buttonInteraction.showModal(modal);
+
+        try {
+          const modalInteraction = await buttonInteraction.awaitModalSubmit({
+            time: 60_000,
+            filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
+          });
+
+          const pageInput = modalInteraction.fields.getTextInputValue('page_number');
+          const pageNumber = parseInt(pageInput, 10);
+
+          if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
+            await modalInteraction.reply({
+              content: `Please enter a valid page number between 1 and ${totalPages}.`,
+              ephemeral: true,
+            });
+            return;
+          }
+
+          currentPage = pageNumber - 1;
+          const newEmbed = await createQuoteListEmbed(
+            getPageQuotes(currentPage),
+            interaction,
+            currentPage + 1,
+            totalPages
+          );
+          const newButtons = createPaginationButtons(currentPage, totalPages);
+
+          await modalInteraction.update({
+            embeds: [newEmbed],
+            components: [newButtons],
+          });
+        } catch {
+          // Modal timed out or was dismissed
+        }
+        return;
+      }
+
+      // Update the page based on which button was pressed
+      if (buttonInteraction.customId === 'quote_prev') {
+        currentPage = currentPage <= 0 ? totalPages - 1 : currentPage - 1;
+      } else if (buttonInteraction.customId === 'quote_next') {
+        currentPage = currentPage >= totalPages - 1 ? 0 : currentPage + 1;
+      }
+
+      const newEmbed = await createQuoteListEmbed(
+        getPageQuotes(currentPage),
+        interaction,
+        currentPage + 1,
+        totalPages
+      );
+      const newButtons = createPaginationButtons(currentPage, totalPages);
+
+      await buttonInteraction.update({
+        embeds: [newEmbed],
+        components: [newButtons],
+      });
+    });
+
+    collector.on('end', async () => {
+      // Disable buttons when collector times out
+      const disabledButtons = createPaginationButtons(currentPage, totalPages, true);
+      try {
+        await dmMessage.edit({ components: [disabledButtons] });
+      } catch {
+        // Message may have been deleted
+      }
+    });
   } catch (error) {
     logger.error('Failed to send DM:', error);
     await interaction.editReply('Failed to send DMs. Please make sure your DMs are open.');
