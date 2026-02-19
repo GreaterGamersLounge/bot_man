@@ -344,7 +344,8 @@ async function handleGetQuote(
 
   // Start at a random index
   let currentIndex = Math.floor(Math.random() * quotes.length);
-  const embed = await createQuoteEmbed(quotes[currentIndex], interaction);
+  // Non-null assertion safe: we checked quotes.length > 0 above
+  const embed = await createQuoteEmbed(quotes[currentIndex]!, interaction);
   const buttons = createPaginationButtons(currentIndex, quotes.length);
 
   const responseData = await interaction.reply({
@@ -398,11 +399,12 @@ async function handleGetQuote(
           }
 
           currentIndex = pageNumber - 1;
-          const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+          // Non-null assertion safe: currentIndex validated against quotes.length
+          const newEmbed = await createQuoteEmbed(quotes[currentIndex]!, interaction);
           const newButtons = createPaginationButtons(currentIndex, quotes.length);
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Discord.js ModalSubmitInteraction.update() type resolution issue
-          await modalInteraction.update({
+          await (modalInteraction as unknown as { update: (options: object) => Promise<void> }).update({
             embeds: [newEmbed],
             components: [newButtons],
           });
@@ -421,7 +423,8 @@ async function handleGetQuote(
     }
 
     const handleUpdate = async (): Promise<void> => {
-      const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+      // Non-null assertion safe: currentIndex validated against quotes.length
+      const newEmbed = await createQuoteEmbed(quotes[currentIndex]!, interaction);
       const newButtons = createPaginationButtons(currentIndex, quotes.length);
 
       await buttonInteraction.update({
@@ -592,7 +595,7 @@ async function handleListQuotes(
             const newButtons = createPaginationButtons(currentPage, totalPages);
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Discord.js ModalSubmitInteraction.update() type resolution issue
-            await modalInteraction.update({
+            await (modalInteraction as unknown as { update: (options: object) => Promise<void> }).update({
               embeds: [newEmbed],
               components: [newButtons],
             });
