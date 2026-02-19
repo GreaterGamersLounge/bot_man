@@ -100,16 +100,7 @@ prisma/
 
 To add the bot to your server:
 
-[Add Bot_Man to your server](https://discord.com/oauth2/authorize?client_id=666025143251894282&scope=bot%20applications.commands&permissions=8)
-
----
-
-## Documentation
-
-- [Migration Plan](docs/MIGRATION_PLAN.md) - TypeScript migration details
-- [EC2 Deployment](docs/EC2_DEPLOYMENT.md) - Production deployment guide
-- [Manual Testing Checklist](docs/MANUAL_TESTING_CHECKLIST.md) - QA checklist
-- [Logging & Performance](docs/LOGGING_AND_PERFORMANCE.md) - Observability guide
+[Add Bot_Man to your server](https://discord.com/oauth2/authorize?client_id=662139319305371669&scope=bot%20applications.commands&permissions=8)
 
 ---
 
