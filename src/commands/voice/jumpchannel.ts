@@ -1,5 +1,10 @@
 import type { ChatInputCommandInteraction, Guild, VoiceChannel } from 'discord.js';
-import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+  ChannelType,
+  InteractionContextType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -10,6 +15,7 @@ export const slashCommand: SlashCommand = {
     .setName('jumpchannel')
     .setDescription('Manage temporary voice jump channels')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setContexts([InteractionContextType.Guild])
     .addSubcommand((subcommand) =>
       subcommand
         .setName('create')

@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
 
@@ -7,7 +7,12 @@ import type { SlashCommand } from '../../types/command.js';
 export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('private')
-    .setDescription('Send a private message to yourself'),
+    .setDescription('Send a private message to yourself')
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     try {

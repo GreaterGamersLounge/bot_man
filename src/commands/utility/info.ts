@@ -1,9 +1,21 @@
-import { EmbedBuilder, SlashCommandBuilder, version as djsVersion } from 'discord.js';
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  SlashCommandBuilder,
+  version as djsVersion,
+} from 'discord.js';
 import { getConfig } from '../../lib/config.js';
 import type { SlashCommand } from '../../types/index.js';
 
 const slash: SlashCommand = {
-  data: new SlashCommandBuilder().setName('info').setDescription('Get information about the bot'),
+  data: new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('Get information about the bot')
+    .setContexts([
+      InteractionContextType.Guild,
+      InteractionContextType.BotDM,
+      InteractionContextType.PrivateChannel,
+    ]),
 
   async execute(interaction) {
     const config = getConfig();

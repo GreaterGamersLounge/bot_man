@@ -1,5 +1,10 @@
 import type { ChatInputCommandInteraction, GuildEmoji, TextChannel } from 'discord.js';
-import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import {
+  EmbedBuilder,
+  InteractionContextType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import { ReactionService } from '../../services/reactionService.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -65,6 +70,7 @@ export const slashCommand: SlashCommand = {
     .setName('reactionrole')
     .setDescription('Manage reaction roles')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setContexts([InteractionContextType.Guild])
     .addSubcommand((subcommand) =>
       subcommand
         .setName('add')
