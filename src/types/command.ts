@@ -3,6 +3,7 @@ import type {
   ChatInputCommandInteraction,
   PermissionResolvable,
   SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
 
@@ -14,6 +15,7 @@ export interface SlashCommand {
   data:
     | SlashCommandBuilder
     | SlashCommandSubcommandsOnlyBuilder
+    | SlashCommandOptionsOnlyBuilder
     | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
   /** The function to execute when the command is invoked */
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;

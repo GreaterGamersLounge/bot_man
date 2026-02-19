@@ -3,6 +3,7 @@
  * Tests the full command execution flow with mocked Discord interactions
  */
 
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SlashCommand } from '../../types/index.js';
 
@@ -50,7 +51,7 @@ describe('Utility Commands Integration', () => {
           getInteger: vi.fn().mockReturnValue(null),
         },
         reply: mockReply,
-      };
+      } as unknown as ChatInputCommandInteraction;
 
       await randomCommand.slash.execute(interaction);
 
@@ -82,7 +83,7 @@ describe('Utility Commands Integration', () => {
           }),
         },
         reply: mockReply,
-      };
+      } as unknown as ChatInputCommandInteraction;
 
       await randomCommand.slash.execute(interaction);
 
@@ -112,7 +113,7 @@ describe('Utility Commands Integration', () => {
           }),
         },
         reply: mockReply,
-      };
+      } as unknown as ChatInputCommandInteraction;
 
       await randomCommand.slash.execute(interaction);
 

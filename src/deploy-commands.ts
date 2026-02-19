@@ -47,7 +47,7 @@ async function deployCommands(): Promise<void> {
     }
 
     const commands = getSlashCommandData().map(
-      (command) => command.toJSON() as Record<string, unknown>
+      (command) => command.toJSON() as unknown as Record<string, unknown>
     );
     logger.info(`Preparing to deploy ${commands.length} slash commands...`);
 

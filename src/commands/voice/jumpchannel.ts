@@ -131,7 +131,7 @@ async function handleCreateJumpChannel(
       return;
     }
 
-    targetChannel = existingChannel;
+    targetChannel = existingChannel as VoiceChannel;
     action = 'designated as';
   } else if (channelName) {
     // Create a new voice channel
