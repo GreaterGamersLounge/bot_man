@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Discord user information (synced from Discord API)
+/// Note: Uses Discord snowflake ID (bigint) as primary key
+model discord_user {
+  uid           BigInt   @id
+  name          String?
+  discriminator String?
+  avatar_url    String?
+  bot_account   Boolean?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  invite_discord_users invite_discord_user[]
+
+  @@map("discord_users")
+}
+
+/// Raw Discord gateway events (STI pattern from Rails)
+/// Type field contains event class name like "Events::MessageCreateEvent"
+model event {
+  id         BigInt   @id @default(autoincrement())
+  type       String
+  data       Json?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("events")
+}
+
+/// Junction table tracking which users joined via which invite
+model invite_discord_user {
+  id               BigInt        @id @default(autoincrement())
+  invite_id        BigInt?
+  discord_user_uid BigInt?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  // Relations
+  invite       invite?       @relation(fields: [invite_id], references: [id])
+  discord_user discord_user? @relation(fields: [discord_user_uid], references: [uid])
+
+  @@map("invite_discord_users")
+}
+
+/// Discord server invites for tracking who invited whom
+model invite {
+  id          BigInt    @id @default(autoincrement())
+  server_uid  BigInt
+  inviter_uid BigInt
+  deleter_uid BigInt?
+  code        String
+  channel_uid String
+  uses        Int
+  max_uses    Int?
+  active      Boolean
+  temporary   Boolean
+  expires     DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Relations
+  invite_discord_users invite_discord_user[]
+
+  @@map("invites")
+}
+
+/// Saved quotes from Discord messages
+model quote {
+  id         BigInt   @id @default(autoincrement())
+  server_uid BigInt?
+  quoter_uid BigInt?
+  quotee_uid BigInt?
+  quote      String?
+  message_id BigInt?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("quotes")
+}
+
+/// Emoji reaction to role mappings
+model reaction_role {
+  id         BigInt   @id @default(autoincrement())
+  message_id BigInt
+  reaction   String
+  role_id    BigInt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("reaction_roles")
+}
+
+/// Discord server/guild information
+model server {
+  id                 BigInt   @id @default(autoincrement())
+  uid                BigInt
+  name               String
+  icon_id            String
+  owner_uid          BigInt
+  region_id          String
+  afk_channel_uid    BigInt?
+  system_channel_uid BigInt?
+  large              Boolean
+  afk_timeout        BigInt?
+  verification_level String
+  member_count       BigInt
+  creation_time      DateTime
+  bot_active         Boolean
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@map("servers")
+}
+
+/// Temporary voice channels (including jump channels)
+model temporary_voice_channel {
+  id              BigInt   @id @default(autoincrement())
+  server_uid      BigInt
+  creator_uid     BigInt
+  channel_uid     BigInt
+  is_jump_channel Boolean
+  active          Boolean
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("temporary_voice_channels")
+}
+
+/// Web dashboard users (Devise authentication)
+/// Kept for compatibility with Rails web dashboard
+model user {
+  id                     BigInt    @id @default(autoincrement())
+  email                  String    @unique @default("")
+  encrypted_password     String    @default("")
+  reset_password_token   String?   @unique
+  reset_password_sent_at DateTime?
+  remember_created_at    DateTime?
+  sign_in_count          Int       @default(0)
+  current_sign_in_at     DateTime?
+  last_sign_in_at        DateTime?
+  current_sign_in_ip     String?   @db.Inet
+  last_sign_in_ip        String?   @db.Inet
+  failed_attempts        Int       @default(0)
+  unlock_token           String?
+  locked_at              DateTime?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+  discord_uid            String?
+
+  @@map("users")
+}

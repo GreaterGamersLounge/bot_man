@@ -1,0 +1,45 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/bot_man
+
+            # Pull latest code
+            git fetch origin master
+            git reset --hard origin/master
+
+            # Install dependencies
+            npm ci --production
+
+            # Generate Prisma client
+            npx prisma generate
+
+            # Run migrations (if any)
+            npx prisma migrate deploy
+
+            # Deploy Discord slash commands
+            npm run deploy-commands
+
+            # Restart PM2 processes
+            pm2 restart ecosystem.config.cjs --update-env
+
+            # Save PM2 process list
+            pm2 save
+
+            echo "✅ Deployment complete!"
