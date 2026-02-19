@@ -1,11 +1,12 @@
 import type {
-    ChatInputCommandInteraction,
-    GuildEmoji,
-    TextChannel} from 'discord.js';
+  ChatInputCommandInteraction,
+  GuildEmoji,
+  TextChannel
+} from 'discord.js';
 import {
-    EmbedBuilder,
-    PermissionFlagsBits,
-    SlashCommandBuilder
+  EmbedBuilder,
+  PermissionFlagsBits,
+  SlashCommandBuilder
 } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import { ReactionService } from '../../services/reactionService.js';

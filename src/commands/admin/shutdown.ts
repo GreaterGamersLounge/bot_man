@@ -1,7 +1,8 @@
 import type {
-    ChatInputCommandInteraction} from 'discord.js';
+  ChatInputCommandInteraction
+} from 'discord.js';
 import {
-    SlashCommandBuilder,
+  SlashCommandBuilder,
 } from 'discord.js';
 import { config } from '../../lib/config.js';
 import { logger } from '../../lib/logger.js';

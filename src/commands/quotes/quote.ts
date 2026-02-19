@@ -1,11 +1,12 @@
 import type {
-    ChatInputCommandInteraction,
-    GuildMember,
-    Message,
-    User} from 'discord.js';
+  ChatInputCommandInteraction,
+  GuildMember,
+  Message,
+  User
+} from 'discord.js';
 import {
-    EmbedBuilder,
-    SlashCommandBuilder
+  EmbedBuilder,
+  SlashCommandBuilder
 } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';

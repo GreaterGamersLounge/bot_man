@@ -1,6 +1,7 @@
 import type {
   ChatInputCommandInteraction,
-  TextChannel} from 'discord.js';
+  TextChannel
+} from 'discord.js';
 import {
   PermissionFlagsBits,
   SlashCommandBuilder

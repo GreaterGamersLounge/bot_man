@@ -1,5 +1,6 @@
 import type {
-  ChatInputCommandInteraction} from 'discord.js';
+  ChatInputCommandInteraction
+} from 'discord.js';
 import {
   OAuth2Scopes,
   PermissionFlagsBits,

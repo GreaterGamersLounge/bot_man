@@ -1,9 +1,9 @@
 import type {
-    AutocompleteInteraction,
-    ChatInputCommandInteraction,
-    PermissionResolvable,
-    SlashCommandBuilder,
-    SlashCommandSubcommandsOnlyBuilder,
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+  PermissionResolvable,
+  SlashCommandBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
 } from 'discord.js';
 
 /**

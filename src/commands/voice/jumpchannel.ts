@@ -1,11 +1,12 @@
 import type {
-    ChatInputCommandInteraction,
-    Guild,
-    VoiceChannel} from 'discord.js';
+  ChatInputCommandInteraction,
+  Guild,
+  VoiceChannel
+} from 'discord.js';
 import {
-    ChannelType,
-    PermissionFlagsBits,
-    SlashCommandBuilder
+  ChannelType,
+  PermissionFlagsBits,
+  SlashCommandBuilder
 } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
@@ -189,7 +190,7 @@ async function handleDeleteJumpChannel(
   }
 
   const channel = interaction.options.getChannel('channel', true);
-  
+
   // Ensure we got a valid channel with a delete method (GuildBasedChannel)
   if (!('delete' in channel)) {
     await interaction.reply({
