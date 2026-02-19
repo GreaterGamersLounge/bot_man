@@ -6,7 +6,7 @@
 import { vi } from 'vitest';
 
 // Mock Guild
-export const createMockGuild = (overrides = {}) => ({
+export const createMockGuild = (overrides = {}): Record<string, unknown> => ({
   id: '123456789012345678',
   name: 'Test Server',
   icon: 'icon123',
@@ -39,7 +39,7 @@ export const createMockGuild = (overrides = {}) => ({
 });
 
 // Mock GuildMember
-export const createMockMember = (overrides = {}) => ({
+export const createMockMember = (overrides = {}): Record<string, unknown> => ({
   id: '222222222222222222',
   user: createMockUser(),
   guild: createMockGuild(),
@@ -98,7 +98,7 @@ export const createMockTextChannel = (overrides = {}): Record<string, unknown> =
 });
 
 // Mock Voice Channel
-export const createMockVoiceChannel = (overrides = {}) => ({
+export const createMockVoiceChannel = (overrides = {}): Record<string, unknown> => ({
   id: '555555555555555555',
   name: 'Test Voice',
   type: 2, // GuildVoice
@@ -114,7 +114,7 @@ export const createMockVoiceChannel = (overrides = {}) => ({
 });
 
 // Mock Category Channel
-export const createMockCategoryChannel = (overrides = {}) => ({
+export const createMockCategoryChannel = (overrides = {}): Record<string, unknown> => ({
   id: '666666666666666666',
   name: 'Test Category',
   type: 4, // GuildCategory
@@ -125,7 +125,7 @@ export const createMockCategoryChannel = (overrides = {}) => ({
 });
 
 // Mock Role
-export const createMockRole = (overrides = {}) => ({
+export const createMockRole = (overrides = {}): Record<string, unknown> => ({
   id: '777777777777777777',
   name: 'Test Role',
   color: 0x000000,
@@ -135,7 +135,7 @@ export const createMockRole = (overrides = {}) => ({
 });
 
 // Mock Invite
-export const createMockInvite = (overrides = {}) => ({
+export const createMockInvite = (overrides = {}): Record<string, unknown> => ({
   code: 'testInvite',
   guild: createMockGuild(),
   inviter: createMockUser(),
@@ -148,7 +148,7 @@ export const createMockInvite = (overrides = {}) => ({
 });
 
 // Mock MessageReaction
-export const createMockReaction = (overrides = {}) => ({
+export const createMockReaction = (overrides = {}): Record<string, unknown> => ({
   emoji: {
     id: null,
     name: '👍',
@@ -162,7 +162,7 @@ export const createMockReaction = (overrides = {}) => ({
 });
 
 // Mock ChatInputCommandInteraction
-export const createMockInteraction = (overrides = {}) => ({
+export const createMockInteraction = (overrides = {}): Record<string, unknown> => ({
   commandName: 'test',
   options: {
     getString: vi.fn(),
@@ -191,7 +191,7 @@ export const createMockInteraction = (overrides = {}) => ({
 });
 
 // Mock VoiceState
-export const createMockVoiceState = (overrides = {}) => ({
+export const createMockVoiceState = (overrides = {}): Record<string, unknown> => ({
   member: createMockMember(),
   guild: createMockGuild(),
   channel: null,
@@ -200,7 +200,7 @@ export const createMockVoiceState = (overrides = {}) => ({
 });
 
 // Mock Client
-export const createMockClient = (overrides = {}) => ({
+export const createMockClient = (overrides = {}): Record<string, unknown> => ({
   user: {
     id: '999999999999999999',
     username: 'BotMan',

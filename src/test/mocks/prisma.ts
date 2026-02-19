@@ -6,7 +6,7 @@
 import { vi } from 'vitest';
 
 // Mock data factories
-export const mockServer = (overrides = {}) => ({
+export const mockServer = (overrides = {}): Record<string, unknown> => ({
   id: 1,
   uid: BigInt('123456789012345678'),
   name: 'Test Server',
@@ -26,7 +26,7 @@ export const mockServer = (overrides = {}) => ({
   ...overrides,
 });
 
-export const mockDiscordUser = (overrides = {}) => ({
+export const mockDiscordUser = (overrides = {}): Record<string, unknown> => ({
   uid: BigInt('222222222222222222'),
   name: 'TestUser',
   discriminator: '0001',
@@ -37,7 +37,7 @@ export const mockDiscordUser = (overrides = {}) => ({
   ...overrides,
 });
 
-export const mockInvite = (overrides = {}) => ({
+export const mockInvite = (overrides = {}): Record<string, unknown> => ({
   id: 1,
   code: 'testInvite',
   server_uid: BigInt('123456789012345678'),
@@ -54,7 +54,7 @@ export const mockInvite = (overrides = {}) => ({
   ...overrides,
 });
 
-export const mockReactionRole = (overrides = {}) => ({
+export const mockReactionRole = (overrides = {}): Record<string, unknown> => ({
   id: 1,
   message_id: BigInt('444444444444444444'),
   reaction: '👍',
@@ -64,7 +64,7 @@ export const mockReactionRole = (overrides = {}) => ({
   ...overrides,
 });
 
-export const mockQuote = (overrides = {}) => ({
+export const mockQuote = (overrides = {}): Record<string, unknown> => ({
   id: 1,
   server_uid: BigInt('123456789012345678'),
   message: 'This is a test quote',
@@ -75,7 +75,7 @@ export const mockQuote = (overrides = {}) => ({
   ...overrides,
 });
 
-export const mockTemporaryVoiceChannel = (overrides = {}) => ({
+export const mockTemporaryVoiceChannel = (overrides = {}): Record<string, unknown> => ({
   id: 1,
   server_uid: BigInt('123456789012345678'),
   channel_uid: BigInt('777777777777777777'),
@@ -86,7 +86,7 @@ export const mockTemporaryVoiceChannel = (overrides = {}) => ({
 });
 
 // Create mock prisma client
-export const createMockPrismaClient = () => ({
+export const createMockPrismaClient = (): Record<string, Record<string, ReturnType<typeof vi.fn>>> => ({
   server: {
     upsert: vi.fn(),
     findFirst: vi.fn(),

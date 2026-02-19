@@ -46,7 +46,7 @@ async function deployCommands(): Promise<void> {
       return;
     }
 
-    const commands = getSlashCommandData().map((command) => command.toJSON());
+    const commands = getSlashCommandData().map((command) => command.toJSON() as Record<string, unknown>);
     logger.info(`Preparing to deploy ${commands.length} slash commands...`);
 
     if (deployGuild) {

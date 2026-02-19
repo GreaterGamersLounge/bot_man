@@ -7,10 +7,16 @@ const slash: SlashCommand = {
     .setDescription('Check bot latency and response time'),
 
   async execute(interaction) {
-    const sent = await interaction.reply({
+    const response = await interaction.reply({
       content: 'Pinging...',
-      fetchReply: true,
+      withResponse: true,
     });
+
+    const sent = response.resource?.message;
+    if (!sent) {
+      await interaction.editReply('Failed to measure latency.');
+      return;
+    }
 
     const roundtrip = sent.createdTimestamp - interaction.createdTimestamp;
     const wsHeartbeat = interaction.client.ws.ping;

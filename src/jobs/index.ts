@@ -76,15 +76,15 @@ export async function stopJobQueue(): Promise<void> {
 /**
  * Send a job to the queue
  */
-export async function sendJob<T>(
+export async function sendJob(
   queueName: JobQueueName,
-  data: T,
+  data: object,
   options?: PgBoss.SendOptions
 ): Promise<string | null> {
   const queue = getJobQueue();
 
   try {
-    const jobId = await queue.send(queueName, data as object, options ?? {});
+    const jobId = await queue.send(queueName, data, options ?? {});
     logger.debug(`Job sent to ${queueName}: ${jobId ?? 'null'}`);
     return jobId;
   } catch (error) {

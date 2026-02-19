@@ -1,10 +1,11 @@
-import {
+import type {
     AutocompleteInteraction,
-    ChannelType,
     ChatInputCommandInteraction,
+    VoiceChannel} from 'discord.js';
+import {
+    ChannelType,
     PermissionFlagsBits,
-    SlashCommandBuilder,
-    VoiceChannel,
+    SlashCommandBuilder
 } from 'discord.js';
 import { levenshtein } from '../../lib/levenshtein.js';
 import { logger } from '../../lib/logger.js';
@@ -18,7 +19,7 @@ function findClosestChannel(
   searchText: string,
   channels: VoiceChannel[]
 ): VoiceChannel | null {
-  if (channels.length === 0) return null;
+  if (channels.length === 0) {return null;}
 
   // Normalize the search text
   const source = searchText.toLowerCase().replace(/[^0-9a-z]/g, '');
@@ -79,7 +80,7 @@ export const slashCommand: SlashCommand = {
     const focusedOption = interaction.options.getFocused(true);
     const guild = interaction.guild;
 
-    if (!guild) return;
+    if (!guild) {return;}
 
     const voiceChannels = getVoiceChannels(guild);
     const searchValue = focusedOption.value.toLowerCase();

@@ -51,7 +51,7 @@ type CommandModule = OldCommandModule | NewCommandModule;
 function normalizeModule(module: CommandModule): NewCommandModule {
   // New format - has slashCommand
   if ('slashCommand' in module) {
-    return module as NewCommandModule;
+    return module;
   }
   // Old format - has slash
   const oldModule = module as OldCommandModule;
@@ -90,7 +90,7 @@ const commandModules: CommandModule[] = [
 /**
  * Load all commands into the client
  */
-export async function loadCommands(client: BotClient): Promise<void> {
+export function loadCommands(client: BotClient): void {
   for (const rawModule of commandModules) {
     const module = normalizeModule(rawModule);
 
@@ -113,8 +113,8 @@ export async function loadCommands(client: BotClient): Promise<void> {
 export function getSlashCommandData(): SlashCommand['data'][] {
   return commandModules
     .map((rawModule) => normalizeModule(rawModule))
-    .filter((module) => module.slashCommand !== undefined)
-    .map((module) => module.slashCommand!.data);
+    .filter((module): module is NewCommandModule & { slashCommand: SlashCommand } => module.slashCommand !== undefined)
+    .map((module) => module.slashCommand.data);
 }
 
 export { commandModules as commands };

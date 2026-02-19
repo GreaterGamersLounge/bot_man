@@ -180,7 +180,7 @@ describe('Voice Command Integration Tests', () => {
       mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue(null);
 
       const mockReply = vi.fn();
-      const mockChannel = { id: '444444444444444444', name: 'Not Jump' };
+      const mockChannel = { id: '444444444444444444', name: 'Not Jump', delete: vi.fn() };
 
       const interaction = {
         guild: { id: '123456789012345678' },

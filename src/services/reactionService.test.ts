@@ -85,6 +85,7 @@ describe('ReactionService', () => {
       await ReactionService.addReactionRole(messageId, customEmoji, roleId);
 
       expect(mockPrisma.reaction_role.create).toHaveBeenCalledWith({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: expect.objectContaining({
           reaction: customEmoji,
         }),

@@ -11,8 +11,7 @@ import type {
  */
 export interface SlashCommand {
   /** The slash command builder data */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'> | any;
+  data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
   /** The function to execute when the command is invoked */
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
   /** Optional autocomplete handler */

@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { SlashCommand } from '../../types/index.js';
 
 // Mock discord.js SlashCommandBuilder before importing commands
 vi.mock('discord.js', async () => {
@@ -13,7 +14,7 @@ vi.mock('discord.js', async () => {
     SlashCommandBuilder: vi.fn().mockImplementation(() => ({
       setName: vi.fn().mockReturnThis(),
       setDescription: vi.fn().mockReturnThis(),
-      addIntegerOption: vi.fn().mockImplementation((fn) => {
+      addIntegerOption: vi.fn().mockImplementation((fn: (opt: unknown) => unknown) => {
         fn({
           setName: vi.fn().mockReturnThis(),
           setDescription: vi.fn().mockReturnThis(),
@@ -34,8 +35,7 @@ vi.mock('discord.js', async () => {
 
 describe('Utility Commands Integration', () => {
   describe('/random command', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let randomCommand: any;
+    let randomCommand: { slash: SlashCommand };
 
     beforeEach(async () => {
       vi.resetModules();
@@ -59,9 +59,10 @@ describe('Utility Commands Integration', () => {
       expect(replyContent).toContain('🎲 Random number between 1 and 100:');
 
       // Extract the number and verify it's in range
-      const match = replyContent.match(/\*\*(\d+)\*\*/);
+      const match = /\*\*(\d+)\*\*/.exec(replyContent);
       expect(match).not.toBeNull();
-      const num = parseInt(match![1]!, 10);
+      const numStr = match?.[1] ?? '';
+      const num = parseInt(numStr, 10);
       expect(num).toBeGreaterThanOrEqual(1);
       expect(num).toBeLessThanOrEqual(100);
     });
@@ -71,8 +72,8 @@ describe('Utility Commands Integration', () => {
       const interaction = {
         options: {
           getInteger: vi.fn().mockImplementation((name: string) => {
-            if (name === 'min') return 50;
-            if (name === 'max') return 60;
+            if (name === 'min') {return 50;}
+            if (name === 'max') {return 60;}
             return null;
           }),
         },
@@ -85,8 +86,9 @@ describe('Utility Commands Integration', () => {
       const replyContent = mockReply.mock.calls[0]?.[0] as string;
       expect(replyContent).toContain('between 50 and 60');
 
-      const match = replyContent.match(/\*\*(\d+)\*\*/);
-      const num = parseInt(match![1]!, 10);
+      const match = /\*\*(\d+)\*\*/.exec(replyContent);
+      const numStr = match?.[1] ?? '';
+      const num = parseInt(numStr, 10);
       expect(num).toBeGreaterThanOrEqual(50);
       expect(num).toBeLessThanOrEqual(60);
     });
@@ -96,8 +98,8 @@ describe('Utility Commands Integration', () => {
       const interaction = {
         options: {
           getInteger: vi.fn().mockImplementation((name: string) => {
-            if (name === 'min') return 100;
-            if (name === 'max') return 50;
+            if (name === 'min') {return 100;}
+            if (name === 'max') {return 50;}
             return null;
           }),
         },

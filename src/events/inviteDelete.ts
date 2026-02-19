@@ -1,4 +1,4 @@
-import { AuditLogEvent, type Guild, type Invite } from 'discord.js';
+import { AuditLogEvent, type Invite } from 'discord.js';
 import { logger } from '../lib/logger.js';
 import { InviteService } from '../services/inviteService.js';
 import type { BotEvent } from '../types/index.js';
@@ -8,7 +8,7 @@ const event: BotEvent<'inviteDelete'> = {
   once: false,
 
   async execute(client, invite: Invite) {
-    if (!invite.guild) return;
+    if (!invite.guild) {return;}
 
     logger.debug(`Invite deleted: ${invite.code} in ${invite.guild.name}`);
 
@@ -23,8 +23,8 @@ const event: BotEvent<'inviteDelete'> = {
       let deleterUid: bigint | undefined;
       try {
         // Type guard to ensure we have a full Guild (not InviteGuild)
-        const guild = invite.guild as Guild;
-        if (!guild.fetchAuditLogs) {
+        const guild = invite.guild;
+        if (!('fetchAuditLogs' in guild)) {
           throw new Error('Cannot fetch audit logs from InviteGuild');
         }
 
@@ -34,11 +34,13 @@ const event: BotEvent<'inviteDelete'> = {
         });
 
         const deleteLog = auditLogs.entries.first();
-        if (deleteLog && deleteLog.target && 'code' in deleteLog.target) {
-          // Verify this audit log is for the same invite
-          if (deleteLog.target.code === invite.code) {
-            deleterUid = deleteLog.executor ? BigInt(deleteLog.executor.id) : undefined;
-          }
+        if (
+          deleteLog?.target &&
+          'code' in deleteLog.target &&
+          deleteLog.target.code === invite.code &&
+          deleteLog.executor
+        ) {
+          deleterUid = BigInt(deleteLog.executor.id);
         }
       } catch (error) {
         logger.warn(`Failed to fetch audit log for invite delete:`, error);

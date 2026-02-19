@@ -31,7 +31,7 @@ const events: BotEvent[] = [
 /**
  * Load all event handlers onto the client
  */
-export async function loadEvents(client: BotClient): Promise<void> {
+export function loadEvents(client: BotClient): void {
   for (const event of events) {
     if (event.once) {
       client.once(event.name, (...args) => {

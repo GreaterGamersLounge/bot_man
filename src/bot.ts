@@ -9,10 +9,10 @@ import type { InviteCacheEntry, SlashCommand } from './types/index.js';
  */
 export class BotClient extends Client {
   /** Collection of slash commands */
-  public slashCommands: Collection<string, SlashCommand> = new Collection();
+  public slashCommands = new Collection<string, SlashCommand>();
 
   /** Cache of invite data per guild for tracking invite usage */
-  public inviteCache: Collection<string, Collection<string, InviteCacheEntry>> = new Collection();
+  public inviteCache = new Collection<string, Collection<string, InviteCacheEntry>>();
 
   constructor() {
     super({
@@ -42,11 +42,11 @@ export class BotClient extends Client {
       logger.info('Starting Bot_Man...');
 
       // Load commands
-      await loadCommands(this);
+      loadCommands(this);
       logger.info(`Loaded ${this.slashCommands.size} slash commands`);
 
       // Load event handlers
-      await loadEvents(this);
+      loadEvents(this);
       logger.info('Event handlers loaded');
 
       // Login to Discord

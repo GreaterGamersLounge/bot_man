@@ -40,11 +40,13 @@ describe('ServerService', () => {
       expect(mockPrisma.server.upsert).toHaveBeenCalledTimes(1);
       expect(mockPrisma.server.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           create: expect.objectContaining({
             uid: serverData.uid,
             name: serverData.name,
             bot_active: true,
           }),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           update: expect.objectContaining({
             name: serverData.name,
             bot_active: true,
@@ -75,6 +77,7 @@ describe('ServerService', () => {
 
       expect(mockPrisma.server.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           create: expect.objectContaining({
             afk_channel_uid: serverData.afkChannelUid,
             system_channel_uid: serverData.systemChannelUid,

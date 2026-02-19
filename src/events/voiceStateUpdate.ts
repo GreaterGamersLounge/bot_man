@@ -29,7 +29,7 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
   const member = newState.member;
   const guild = newState.guild;
 
-  if (!channel || !member || !guild) return;
+  if (!channel || !member) {return;}
 
   try {
     // Check if this is a jump channel
@@ -42,7 +42,7 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
       },
     });
 
-    if (!jumpChannel) return;
+    if (!jumpChannel) {return;}
 
     logger.debug(`User ${member.user.username} joined jump channel ${channel.name}`);
 
@@ -99,11 +99,11 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
  * Handle when a user leaves a voice channel
  * If it's a temp channel and now empty, delete it
  */
-async function handleChannelLeave(oldState: VoiceState, newState: VoiceState): Promise<void> {
+async function handleChannelLeave(oldState: VoiceState, _newState: VoiceState): Promise<void> {
   const oldChannel = oldState.channel;
   const guild = oldState.guild;
 
-  if (!oldChannel || !guild) return;
+  if (!oldChannel) {return;}
 
   try {
     // Check if this is a temp channel (not a jump channel)
@@ -116,13 +116,13 @@ async function handleChannelLeave(oldState: VoiceState, newState: VoiceState): P
       },
     });
 
-    if (!tempChannel) return;
+    if (!tempChannel) {return;}
 
     // Check if the channel is now empty
     // Need to fetch fresh channel data since cache might be stale
     const freshChannel = await guild.channels.fetch(oldChannel.id).catch(() => null);
 
-    if (!freshChannel || freshChannel.type !== ChannelType.GuildVoice) {
+    if (freshChannel?.type !== ChannelType.GuildVoice) {
       // Channel already deleted
       await prisma.temporary_voice_channel.update({
         where: { id: tempChannel.id },

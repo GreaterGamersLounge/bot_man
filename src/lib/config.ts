@@ -41,9 +41,7 @@ export function loadConfig(): BotConfig {
 let configInstance: BotConfig | null = null;
 
 export function getConfig(): BotConfig {
-  if (!configInstance) {
-    configInstance = loadConfig();
-  }
+  configInstance ??= loadConfig();
   return configInstance;
 }
 

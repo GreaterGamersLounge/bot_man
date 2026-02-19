@@ -36,7 +36,7 @@ async function main(): Promise<void> {
     logger.info(`Received ${signal}. Shutting down gracefully...`);
 
     try {
-      client.destroy();
+      void client.destroy();
       await disconnectDatabase();
       logger.info('Shutdown complete.');
       process.exit(0);
@@ -54,4 +54,8 @@ async function main(): Promise<void> {
 }
 
 // Run main
-void main();
+main().catch((error: unknown) => {
+  // eslint-disable-next-line no-console
+  console.error('Failed to start bot:', error);
+  process.exit(1);
+});

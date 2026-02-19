@@ -1,10 +1,11 @@
-import {
+import type {
     ChatInputCommandInteraction,
-    EmbedBuilder,
     GuildEmoji,
+    TextChannel} from 'discord.js';
+import {
+    EmbedBuilder,
     PermissionFlagsBits,
-    SlashCommandBuilder,
-    TextChannel,
+    SlashCommandBuilder
 } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import { ReactionService } from '../../services/reactionService.js';
@@ -19,7 +20,7 @@ const EMBED_COLOR = 0x3fb426; // Green color matching Ruby version
  */
 function parseEmojiKey(emoji: string): string {
   // Check if it's a custom emoji
-  const customMatch = emoji.match(/<a?:(\w+):(\d+)>/);
+  const customMatch = /<a?:(\w+):(\d+)>/.exec(emoji);
   if (customMatch) {
     return `${customMatch[1]}:${customMatch[2]}`;
   }
@@ -33,8 +34,8 @@ function parseEmojiKey(emoji: string): string {
  * Unicode emoji: just the emoji character
  */
 function getReactionKey(emoji: string): string {
-  const customMatch = emoji.match(/<a?:(\w+:\d+)>/);
-  if (customMatch && customMatch[1]) {
+  const customMatch = /<a?:(\w+:\d+)>/.exec(emoji);
+  if (customMatch?.[1]) {
     return customMatch[1];
   }
   return emoji;
@@ -45,10 +46,10 @@ function getReactionKey(emoji: string): string {
  */
 function isEmojiInServer(guildEmojis: Map<string, GuildEmoji>, emoji: string): boolean {
   // If it's not a custom emoji, it's always available
-  if (!emoji.includes(':')) return true;
+  if (!emoji.includes(':')) {return true;}
 
-  const customMatch = emoji.match(/<a?:\w+:(\d+)>/);
-  if (!customMatch || !customMatch[1]) return true;
+  const customMatch = /<a?:\w+:(\d+)>/.exec(emoji);
+  if (!customMatch?.[1]) {return true;}
 
   const emojiId = customMatch[1];
   return guildEmojis.has(emojiId);
@@ -157,7 +158,7 @@ async function handleAddReactionRole(interaction: ChatInputCommandInteraction): 
   }
 
   // Validate emoji is from this server (for custom emojis)
-  if (!isEmojiInServer(interaction.guild!.emojis.cache, emoji)) {
+  if (!interaction.guild || !isEmojiInServer(interaction.guild.emojis.cache, emoji)) {
     await interaction.reply({
       content: 'Please supply an emoji from this server',
       ephemeral: true,
@@ -186,7 +187,7 @@ async function handleAddReactionRole(interaction: ChatInputCommandInteraction): 
     BigInt(role.id)
   );
 
-  const messageUrl = discordUrl(interaction.guild!.id, channel.id, messageId);
+  const messageUrl = discordUrl(interaction.guildId ?? '', channel.id, messageId);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLOR)
@@ -238,7 +239,7 @@ async function handleRemoveReactionRole(interaction: ChatInputCommandInteraction
     logger.warn('Failed to remove reaction from message:', error);
   }
 
-  const messageUrl = discordUrl(interaction.guild!.id, channel.id, messageId);
+  const messageUrl = discordUrl(interaction.guildId ?? '', channel.id, messageId);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLOR)
@@ -286,7 +287,7 @@ async function handleClearReactionRoles(interaction: ChatInputCommandInteraction
   // Delete all reaction roles from database
   await ReactionService.removeAllReactionRoles(BigInt(messageId));
 
-  const messageUrl = discordUrl(interaction.guild!.id, channel.id, messageId);
+  const messageUrl = discordUrl(interaction.guildId ?? '', channel.id, messageId);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLOR)

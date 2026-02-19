@@ -72,6 +72,7 @@ describe('Quote Commands Integration', () => {
 
       expect(mockPrisma.quote.findMany).toHaveBeenCalled();
       expect(mockReply).toHaveBeenCalledWith(expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         embeds: expect.any(Array),
       }));
     });
@@ -144,6 +145,7 @@ describe('Quote Commands Integration', () => {
         },
       });
       expect(mockReply).toHaveBeenCalledWith(expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         embeds: expect.any(Array),
       }));
     });

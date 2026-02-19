@@ -35,7 +35,7 @@ async function syncServer(guild: Guild): Promise<void> {
       name: guild.name,
       iconId: guild.icon ?? '',
       ownerUid: BigInt(guild.ownerId),
-      regionId: guild.preferredLocale ?? 'unknown',
+      regionId: guild.preferredLocale,
       afkChannelUid: guild.afkChannelId ? BigInt(guild.afkChannelId) : undefined,
       systemChannelUid: guild.systemChannelId ? BigInt(guild.systemChannelId) : undefined,
       large: guild.large,
@@ -120,7 +120,6 @@ async function cacheInvites(client: Parameters<BotEvent['execute']>[0], guild: G
     logger.debug(`Cached ${invites.size} invites for new guild: ${guild.name}`);
 
     // Mark any invites not in the current list as inactive
-    const currentCodes = Array.from(invites.values()).map((i) => i.code);
     // This would require additional database query - marking for future enhancement
   } catch (error) {
     logger.warn(`Failed to cache invites for guild ${guild.name}:`, error);

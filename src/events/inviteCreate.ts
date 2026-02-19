@@ -8,7 +8,7 @@ const event: BotEvent<'inviteCreate'> = {
   once: false,
 
   async execute(client, invite: Invite) {
-    if (!invite.guild) return;
+    if (!invite.guild) {return;}
 
     logger.debug(`Invite created: ${invite.code} in ${invite.guild.name}`);
 
@@ -20,7 +20,7 @@ const event: BotEvent<'inviteCreate'> = {
         client.inviteCache.set(invite.guild.id, inviteMap);
       }
 
-      inviteMap!.set(invite.code, {
+      inviteMap.set(invite.code, {
         code: invite.code,
         uses: invite.uses ?? 0,
         inviterId: invite.inviter?.id ?? null,

@@ -1,8 +1,9 @@
-import {
+import type {
   ChatInputCommandInteraction,
+  TextChannel} from 'discord.js';
+import {
   PermissionFlagsBits,
-  SlashCommandBuilder,
-  TextChannel,
+  SlashCommandBuilder
 } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';

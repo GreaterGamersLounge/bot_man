@@ -1,10 +1,11 @@
-import {
+import type {
     ChatInputCommandInteraction,
-    EmbedBuilder,
     GuildMember,
     Message,
-    SlashCommandBuilder,
-    User,
+    User} from 'discord.js';
+import {
+    EmbedBuilder,
+    SlashCommandBuilder
 } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
@@ -15,7 +16,7 @@ const EMBED_COLOR = 0x3fb426; // Green color matching Ruby version
 /**
  * Helper to get a random quote from the database
  */
-async function getRandomQuote(serverUid: bigint, quoteeUid?: bigint) {
+async function getRandomQuote(serverUid: bigint, quoteeUid?: bigint): Promise<Awaited<ReturnType<typeof prisma.quote.findFirst>> | undefined> {
   const whereClause: { server_uid: bigint; quotee_uid?: bigint } = {
     server_uid: serverUid,
   };
@@ -29,7 +30,7 @@ async function getRandomQuote(serverUid: bigint, quoteeUid?: bigint) {
     where: whereClause,
   });
 
-  if (quotes.length === 0) return null;
+  if (quotes.length === 0) {return null;}
 
   const randomIndex = Math.floor(Math.random() * quotes.length);
   return quotes[randomIndex];

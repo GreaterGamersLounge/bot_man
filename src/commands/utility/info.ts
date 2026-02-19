@@ -10,7 +10,7 @@ const slash: SlashCommand = {
   async execute(interaction) {
     const config = getConfig();
     const client = interaction.client;
-    const uptime = formatUptime(client.uptime ?? 0);
+    const uptime = formatUptime(client.uptime);
 
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)

@@ -65,6 +65,7 @@ describe('UserService', () => {
 
       expect(mockPrisma.discord_user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           create: expect.objectContaining({
             bot_account: true,
           }),
@@ -85,6 +86,7 @@ describe('UserService', () => {
 
       expect(mockPrisma.discord_user.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           create: expect.objectContaining({
             discriminator: undefined,
             avatar_url: undefined,

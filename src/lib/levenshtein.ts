@@ -6,33 +6,39 @@ export function levenshteinDistance(str1: string, str2: string): number {
   const m = str1.length;
   const n = str2.length;
 
-  // Create a 2D array to store distances
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0) as number[]);
+  // Create a 2D array to store distances - we use (m+1) x (n+1)
+  // Using a flat array with helper function for cleaner code
+  const dp: number[] = new Array((m + 1) * (n + 1)).fill(0) as number[];
+
+  const get = (i: number, j: number): number => dp[i * (n + 1) + j] ?? 0;
+  const set = (i: number, j: number, val: number): void => {
+    dp[i * (n + 1) + j] = val;
+  };
 
   // Initialize base cases
   for (let i = 0; i <= m; i++) {
-    dp[i]![0] = i;
+    set(i, 0, i);
   }
   for (let j = 0; j <= n; j++) {
-    dp[0]![j] = j;
+    set(0, j, j);
   }
 
   // Fill in the rest of the matrix
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       if (str1[i - 1] === str2[j - 1]) {
-        dp[i]![j] = dp[i - 1]![j - 1]!;
+        set(i, j, get(i - 1, j - 1));
       } else {
-        dp[i]![j] = 1 + Math.min(
-          dp[i - 1]![j]!,      // deletion
-          dp[i]![j - 1]!,      // insertion
-          dp[i - 1]![j - 1]!   // substitution
-        );
+        set(i, j, 1 + Math.min(
+          get(i - 1, j),      // deletion
+          get(i, j - 1),      // insertion
+          get(i - 1, j - 1)   // substitution
+        ));
       }
     }
   }
 
-  return dp[m]![n]!;
+  return get(m, n);
 }
 
 /**

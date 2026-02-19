@@ -37,6 +37,7 @@ describe('InviteService', () => {
 
       expect(result.code).toBe('newInvite');
       expect(mockPrisma.invite.create).toHaveBeenCalledWith({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: expect.objectContaining({
           code: inviteData.code,
           server_uid: inviteData.serverUid,
@@ -61,7 +62,7 @@ describe('InviteService', () => {
       mockPrisma.invite.findFirst.mockResolvedValue(existingInvite);
       mockPrisma.invite.update.mockResolvedValue(mockInvite({ ...existingInvite, uses: 10 }));
 
-      const result = await InviteService.upsertInvite(updateData);
+      await InviteService.upsertInvite(updateData);
 
       expect(mockPrisma.invite.update).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -91,6 +92,7 @@ describe('InviteService', () => {
       await InviteService.upsertInvite(inviteData);
 
       expect(mockPrisma.invite.create).toHaveBeenCalledWith({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: expect.objectContaining({
           max_uses: 100,
           temporary: true,
@@ -248,12 +250,14 @@ describe('InviteService', () => {
 
       expect(result).toHaveLength(2);
       // Should be sorted by totalUses descending
-      expect(result[0]!.inviterUid).toBe(inviterA);
-      expect(result[0]!.totalUses).toBe(4);
-      expect(result[0]!.activeInvites).toBe(1);
-      expect(result[1]!.inviterUid).toBe(inviterB);
-      expect(result[1]!.totalUses).toBe(2);
-      expect(result[1]!.activeInvites).toBe(1);
+      const first = result[0];
+      const second = result[1];
+      expect(first?.inviterUid).toBe(inviterA);
+      expect(first?.totalUses).toBe(4);
+      expect(first?.activeInvites).toBe(1);
+      expect(second?.inviterUid).toBe(inviterB);
+      expect(second?.totalUses).toBe(2);
+      expect(second?.activeInvites).toBe(1);
     });
 
     it('should return empty array if no invites', async () => {

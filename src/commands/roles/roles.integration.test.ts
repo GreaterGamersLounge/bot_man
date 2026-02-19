@@ -101,8 +101,8 @@ describe('Reaction Role Command Integration Tests', () => {
         options: {
           getSubcommand: vi.fn().mockReturnValue('remove'),
           getString: vi.fn((name: string) => {
-            if (name === 'message_id') return '999999999999999999';
-            if (name === 'emoji') return '🎉';
+            if (name === 'message_id') {return '999999999999999999';}
+            if (name === 'emoji') {return '🎉';}
             return null;
           }),
         },

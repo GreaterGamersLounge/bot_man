@@ -13,7 +13,7 @@ const event: BotEvent<'messageReactionAdd'> = {
 
   async execute(client, reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
     // Ignore bot reactions
-    if (user.bot) return;
+    if (user.bot) {return;}
 
     try {
       // Fetch partial reaction if needed
@@ -29,7 +29,7 @@ const event: BotEvent<'messageReactionAdd'> = {
       const message = reaction.message;
       const guild = message.guild;
 
-      if (!guild) return; // Ignore DM reactions
+      if (!guild) {return;} // Ignore DM reactions
 
       // Get the emoji key (for both custom and unicode emojis)
       const emojiKey = getEmojiKey(reaction);
@@ -79,7 +79,7 @@ async function handleReactionRole(
   try {
     const roleId = await ReactionService.getRoleForReaction(BigInt(messageId), emojiKey);
 
-    if (!roleId) return; // No reaction role configured for this emoji
+    if (!roleId) {return;} // No reaction role configured for this emoji
 
     const member = await guild.members.fetch(userId);
     const role = guild.roles.cache.get(roleId.toString());
@@ -109,12 +109,12 @@ async function handleQuoteReaction(
   message: MessageReaction['message'],
   quoter: User
 ): Promise<void> {
-  if (!message.guild) return;
+  if (!message.guild) {return;}
 
   const quote = message.content;
 
   // Ignore empty messages (e.g., image-only)
-  if (!quote || quote.trim() === '') return;
+  if (!quote || quote.trim() === '') {return;}
 
   try {
     // Check if this message is already quoted
