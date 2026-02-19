@@ -1,14 +1,10 @@
 export * from './inviteService.js';
 export * from './reactionService.js';
 export {
-  ServerService,
-  syncServer,
-  markInactive,
-  getByUid as getServerByUid,
+  getByUid as getServerByUid, markInactive, ServerService,
+  syncServer
 } from './serverService.js';
 export {
-  UserService,
-  syncUser,
   getByUid as getUserByUid,
-  getWithInvites,
+  getWithInvites, syncUser, UserService
 } from './userService.js';
