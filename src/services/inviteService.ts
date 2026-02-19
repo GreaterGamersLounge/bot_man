@@ -119,7 +119,9 @@ export async function getActiveInvites(serverUid: bigint): Promise<invite[]> {
 /**
  * Get invite statistics for a server
  */
-export async function getInviteStats(serverUid: bigint): Promise<{ inviterUid: bigint; totalUses: number; activeInvites: number }[]> {
+export async function getInviteStats(
+  serverUid: bigint
+): Promise<{ inviterUid: bigint; totalUses: number; activeInvites: number }[]> {
   const invites = await prisma.invite.findMany({
     where: { server_uid: serverUid },
     include: {

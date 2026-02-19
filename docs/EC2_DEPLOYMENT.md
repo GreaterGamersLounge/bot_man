@@ -4,12 +4,12 @@ This guide walks through setting up Bot_Man on a minimal AWS EC2 instance with a
 
 ## Cost Breakdown
 
-| Resource | Monthly Cost |
-|----------|-------------|
-| t4g.nano (2 vCPU, 0.5GB RAM) | ~$3.07 |
-| Public IPv4 address | ~$3.65 |
-| 8GB gp3 EBS volume | ~$0.64 |
-| **Total** | **~$7.36/mo** |
+| Resource                     | Monthly Cost  |
+| ---------------------------- | ------------- |
+| t4g.nano (2 vCPU, 0.5GB RAM) | ~$3.07        |
+| Public IPv4 address          | ~$3.65        |
+| 8GB gp3 EBS volume           | ~$0.64        |
+| **Total**                    | **~$7.36/mo** |
 
 > **Note:** If you're still in the t4g.small free tier period (until Dec 31, 2026), use t4g.small instead — the instance cost is $0, so total would be ~$4.29/mo.
 
@@ -47,10 +47,10 @@ This guide walks through setting up Bot_Man on a minimal AWS EC2 instance with a
    - **Auto-assign public IP:** Enable
    - **Security group:** Create new with these rules:
 
-   | Type | Port | Source | Description |
-   |------|------|--------|-------------|
-   | SSH | 22 | Your IP (or 0.0.0.0/0 if needed) | SSH access |
-   | All traffic | All | sg-xxxxx (RDS security group) | Allow RDS access |
+   | Type        | Port | Source                           | Description      |
+   | ----------- | ---- | -------------------------------- | ---------------- |
+   | SSH         | 22   | Your IP (or 0.0.0.0/0 if needed) | SSH access       |
+   | All traffic | All  | sg-xxxxx (RDS security group)    | Allow RDS access |
 
 7. **Storage:** 8 GB gp3 (default is fine)
 
@@ -201,9 +201,9 @@ Go to your GitHub repo > **Settings > Secrets and variables > Actions** > **New 
 
 Add these secrets:
 
-| Secret Name | Value |
-|-------------|-------|
-| `EC2_HOST` | Your EC2 public IP address |
+| Secret Name   | Value                                    |
+| ------------- | ---------------------------------------- |
+| `EC2_HOST`    | Your EC2 public IP address               |
 | `EC2_SSH_KEY` | Contents of your `.pem` private key file |
 
 ### Test deployment
@@ -366,12 +366,12 @@ Or upgrade to `t4g.micro` (1GB RAM, ~$6.13/mo) or `t4g.small` (2GB RAM, ~$12.26/
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| SSH into server | `ssh -i key.pem ec2-user@<IP>` |
-| View bot logs | `pm2 logs bot` |
-| Restart bot | `pm2 restart bot` |
-| Check status | `pm2 status` |
-| Manual deploy | `cd ~/bot_man && git pull && npm ci && npm run build && pm2 restart all` |
-| Check memory | `free -m` |
-| Check disk | `df -h` |
+| Task            | Command                                                                  |
+| --------------- | ------------------------------------------------------------------------ |
+| SSH into server | `ssh -i key.pem ec2-user@<IP>`                                           |
+| View bot logs   | `pm2 logs bot`                                                           |
+| Restart bot     | `pm2 restart bot`                                                        |
+| Check status    | `pm2 status`                                                             |
+| Manual deploy   | `cd ~/bot_man && git pull && npm ci && npm run build && pm2 restart all` |
+| Check memory    | `free -m`                                                                |
+| Check disk      | `df -h`                                                                  |

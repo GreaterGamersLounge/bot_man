@@ -1,13 +1,5 @@
-import type {
-  ChatInputCommandInteraction,
-  GuildMember,
-  Message,
-  User
-} from 'discord.js';
-import {
-  EmbedBuilder,
-  SlashCommandBuilder
-} from 'discord.js';
+import type { ChatInputCommandInteraction, GuildMember, Message, User } from 'discord.js';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -17,7 +9,10 @@ const EMBED_COLOR = 0x3fb426; // Green color matching Ruby version
 /**
  * Helper to get a random quote from the database
  */
-async function getRandomQuote(serverUid: bigint, quoteeUid?: bigint): Promise<Awaited<ReturnType<typeof prisma.quote.findFirst>> | undefined> {
+async function getRandomQuote(
+  serverUid: bigint,
+  quoteeUid?: bigint
+): Promise<Awaited<ReturnType<typeof prisma.quote.findFirst>> | undefined> {
   const whereClause: { server_uid: bigint; quotee_uid?: bigint } = {
     server_uid: serverUid,
   };
@@ -31,7 +26,9 @@ async function getRandomQuote(serverUid: bigint, quoteeUid?: bigint): Promise<Aw
     where: whereClause,
   });
 
-  if (quotes.length === 0) {return null;}
+  if (quotes.length === 0) {
+    return null;
+  }
 
   const randomIndex = Math.floor(Math.random() * quotes.length);
   return quotes[randomIndex];
@@ -61,7 +58,13 @@ function getUserAvatarUrl(member: GuildMember | User | null): string | null {
  * Create an embed for displaying a quote
  */
 async function createQuoteEmbed(
-  quote: { id: bigint; quote: string | null; quoter_uid: bigint | null; quotee_uid: bigint | null; created_at: Date },
+  quote: {
+    id: bigint;
+    quote: string | null;
+    quoter_uid: bigint | null;
+    quotee_uid: bigint | null;
+    created_at: Date;
+  },
   interaction: ChatInputCommandInteraction | Message
 ): Promise<EmbedBuilder> {
   const guild = interaction.guild;

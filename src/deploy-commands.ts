@@ -46,7 +46,9 @@ async function deployCommands(): Promise<void> {
       return;
     }
 
-    const commands = getSlashCommandData().map((command) => command.toJSON() as Record<string, unknown>);
+    const commands = getSlashCommandData().map(
+      (command) => command.toJSON() as Record<string, unknown>
+    );
     logger.info(`Preparing to deploy ${commands.length} slash commands...`);
 
     if (deployGuild) {
@@ -54,9 +56,7 @@ async function deployCommands(): Promise<void> {
       const guildId = config.devGuildId;
 
       if (!guildId) {
-        throw new Error(
-          'DEV_GUILD_ID environment variable is required for guild deployment'
-        );
+        throw new Error('DEV_GUILD_ID environment variable is required for guild deployment');
       }
 
       logger.info(`Deploying commands to guild: ${guildId}`);

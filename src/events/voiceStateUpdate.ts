@@ -29,7 +29,9 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
   const member = newState.member;
   const guild = newState.guild;
 
-  if (!channel || !member) {return;}
+  if (!channel || !member) {
+    return;
+  }
 
   try {
     // Check if this is a jump channel
@@ -42,7 +44,9 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
       },
     });
 
-    if (!jumpChannel) {return;}
+    if (!jumpChannel) {
+      return;
+    }
 
     logger.debug(`User ${member.user.username} joined jump channel ${channel.name}`);
 
@@ -103,7 +107,9 @@ async function handleChannelLeave(oldState: VoiceState, _newState: VoiceState): 
   const oldChannel = oldState.channel;
   const guild = oldState.guild;
 
-  if (!oldChannel) {return;}
+  if (!oldChannel) {
+    return;
+  }
 
   try {
     // Check if this is a temp channel (not a jump channel)
@@ -116,7 +122,9 @@ async function handleChannelLeave(oldState: VoiceState, _newState: VoiceState): 
       },
     });
 
-    if (!tempChannel) {return;}
+    if (!tempChannel) {
+      return;
+    }
 
     // Check if the channel is now empty
     // Need to fetch fresh channel data since cache might be stale
@@ -133,7 +141,9 @@ async function handleChannelLeave(oldState: VoiceState, _newState: VoiceState): 
 
     // Check member count
     if (freshChannel.members.size > 0) {
-      logger.debug(`Temp channel ${freshChannel.name} still has ${freshChannel.members.size} members`);
+      logger.debug(
+        `Temp channel ${freshChannel.name} still has ${freshChannel.members.size} members`
+      );
       return;
     }
 

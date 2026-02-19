@@ -6,10 +6,10 @@
 
 Bot_Man uses Winston for logging with environment-based configuration:
 
-| Environment | Log Level | Format |
-|-------------|-----------|--------|
-| Development | `debug` | Colorized, human-readable |
-| Production | `info` | JSON format |
+| Environment | Log Level | Format                    |
+| ----------- | --------- | ------------------------- |
+| Development | `debug`   | Colorized, human-readable |
+| Production  | `info`    | JSON format               |
 
 ### Log Level Override
 
@@ -30,24 +30,28 @@ LOG_LEVEL=warn npm run dev     # Reduce noise in development
 ### Logging Patterns
 
 **Success operations:**
+
 ```typescript
 logger.info(`DM sent to ${user.tag} by ${sender.tag}`);
 logger.info(`Created temp voice channel ${channel.name}`);
 ```
 
 **Debugging flow:**
+
 ```typescript
 logger.debug(`Processing event log job: ${type}`);
 logger.debug(`Synced ${count} users for guild: ${guild.name}`);
 ```
 
 **Warnings (non-critical):**
+
 ```typescript
 logger.warn(`No cached invites for guild ${guild.name}`);
 logger.warn(`Role ${roleId} not found in guild`);
 ```
 
 **Errors:**
+
 ```typescript
 logger.error(`Failed to sync server ${name}:`, error);
 logger.error('Error handling reaction add:', error);
@@ -56,6 +60,7 @@ logger.error('Error handling reaction add:', error);
 ### Production Logging
 
 In production, logs are also written to:
+
 - `logs/error.log` - Error-level logs only
 - Console (stdout) - All configured levels in JSON format
 
@@ -66,6 +71,7 @@ In production, logs are also written to:
 ### Command Response Times
 
 Target response times:
+
 - Simple commands (`/ping`, `/me`): < 100ms
 - Database queries (`/quote get`): < 500ms
 - Complex operations (`/massmove`): < 3000ms
@@ -73,10 +79,12 @@ Target response times:
 ### Database Optimization
 
 **Prisma Configuration:**
+
 - Connection pooling enabled by default
 - Query batching for bulk operations
 
 **Indexed Fields:**
+
 - `servers.uid` (primary lookup)
 - `discord_users.uid` (user lookups)
 - `quotes.server_uid` (quote filtering)
@@ -86,11 +94,13 @@ Target response times:
 ### Memory Management
 
 **Expected Memory Usage:**
+
 - Bot idle: ~80-120MB
 - Active (processing): ~150-200MB
 - Peak (large operations): ~300-400MB
 
 **Memory Optimization Tips:**
+
 1. Discord.js caches are managed automatically
 2. Prisma client is singleton (single connection pool)
 3. Event listeners are properly cleaned up
@@ -98,11 +108,13 @@ Target response times:
 ### Concurrent Operations
 
 **Rate Limiting:**
+
 - Discord API rate limits handled by discord.js
 - Database connection pool: 10 connections default
 - pg-boss queue: concurrent job processing
 
 **Bottlenecks to Monitor:**
+
 1. Database connection exhaustion
 2. Discord API rate limiting (429 responses)
 3. Memory pressure from large guild operations
@@ -110,16 +122,18 @@ Target response times:
 ### Background Jobs (pg-boss)
 
 **Queue Configuration:**
+
 - `EVENT_LOG` queue: Event persistence
 - Job retention: 7 days
 - Dead letter queue enabled
 
 **Performance Tuning:**
+
 ```typescript
 // Adjust concurrent jobs
 const boss = new PgBoss({
   db: { connectionString: DATABASE_URL },
-  max: 10,  // Max concurrent jobs
+  max: 10, // Max concurrent jobs
 });
 ```
 
@@ -152,12 +166,14 @@ For comprehensive load testing, consider:
 ### Monitoring in Production
 
 **Key Metrics to Track:**
+
 - Response time percentiles (p50, p95, p99)
 - Memory usage over time
 - Database query times
 - Error rates
 
 **Recommended Tools:**
+
 - Prometheus + Grafana for metrics
 - Sentry for error tracking
 - Datadog APM for full observability
@@ -188,9 +204,9 @@ For comprehensive load testing, consider:
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LOG_LEVEL` | Logging verbosity | `debug` (dev) / `info` (prod) |
-| `NODE_ENV` | Environment mode | `development` |
-| `DATABASE_URL` | PostgreSQL connection | Required |
-| `BOTMAN_BOT_TOKEN` | Discord bot token | Required |
+| Variable           | Description           | Default                       |
+| ------------------ | --------------------- | ----------------------------- |
+| `LOG_LEVEL`        | Logging verbosity     | `debug` (dev) / `info` (prod) |
+| `NODE_ENV`         | Environment mode      | `development`                 |
+| `DATABASE_URL`     | PostgreSQL connection | Required                      |
+| `BOTMAN_BOT_TOKEN` | Discord bot token     | Required                      |

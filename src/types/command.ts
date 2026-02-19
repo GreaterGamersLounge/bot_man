@@ -11,7 +11,10 @@ import type {
  */
 export interface SlashCommand {
   /** The slash command builder data */
-  data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+  data:
+    | SlashCommandBuilder
+    | SlashCommandSubcommandsOnlyBuilder
+    | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
   /** The function to execute when the command is invoked */
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
   /** Optional autocomplete handler */

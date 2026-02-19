@@ -105,7 +105,11 @@ describe('Voice Command Integration Tests', () => {
     it('should register an existing channel as a jump channel', async () => {
       const { slashCommand } = await import('./jumpchannel.js');
 
-      const existingChannel = { id: '555555555555555555', name: 'Existing Voice', type: ChannelType.GuildVoice };
+      const existingChannel = {
+        id: '555555555555555555',
+        name: 'Existing Voice',
+        type: ChannelType.GuildVoice,
+      };
 
       mockPrisma.temporary_voice_channel.create.mockResolvedValue({} as never);
       mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue(null); // Not already a jump channel
@@ -144,10 +148,16 @@ describe('Voice Command Integration Tests', () => {
     it('should reject when existing channel is already a jump channel', async () => {
       const { slashCommand } = await import('./jumpchannel.js');
 
-      const existingChannel = { id: '555555555555555555', name: 'Already Jump', type: ChannelType.GuildVoice };
+      const existingChannel = {
+        id: '555555555555555555',
+        name: 'Already Jump',
+        type: ChannelType.GuildVoice,
+      };
 
       // Already exists as a jump channel
-      mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue({ discord_channel_id: existingChannel.id } as never);
+      mockPrisma.temporary_voice_channel.findFirst.mockResolvedValue({
+        discord_channel_id: existingChannel.id,
+      } as never);
 
       const mockReply = vi.fn();
 

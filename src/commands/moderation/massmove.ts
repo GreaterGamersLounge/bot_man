@@ -1,13 +1,9 @@
 import type {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
-  VoiceChannel
+  VoiceChannel,
 } from 'discord.js';
-import {
-  ChannelType,
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} from 'discord.js';
+import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { levenshtein } from '../../lib/levenshtein.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -16,11 +12,10 @@ import type { SlashCommand } from '../../types/command.js';
  * Find the closest matching voice channel by name
  * Uses substring matching first, then Levenshtein distance
  */
-function findClosestChannel(
-  searchText: string,
-  channels: VoiceChannel[]
-): VoiceChannel | null {
-  if (channels.length === 0) {return null;}
+function findClosestChannel(searchText: string, channels: VoiceChannel[]): VoiceChannel | null {
+  if (channels.length === 0) {
+    return null;
+  }
 
   // Normalize the search text
   const source = searchText.toLowerCase().replace(/[^0-9a-z]/g, '');
@@ -50,7 +45,9 @@ function findClosestChannel(
 /**
  * Get all voice channels in a guild
  */
-function getVoiceChannels(guild: { channels: { cache: Map<string, { type: ChannelType }> } }): VoiceChannel[] {
+function getVoiceChannels(guild: {
+  channels: { cache: Map<string, { type: ChannelType }> };
+}): VoiceChannel[] {
   return Array.from(guild.channels.cache.values()).filter(
     (channel): channel is VoiceChannel => channel.type === ChannelType.GuildVoice
   );
@@ -81,7 +78,9 @@ export const slashCommand: SlashCommand = {
     const focusedOption = interaction.options.getFocused(true);
     const guild = interaction.guild;
 
-    if (!guild) {return;}
+    if (!guild) {
+      return;
+    }
 
     const voiceChannels = getVoiceChannels(guild);
     const searchValue = focusedOption.value.toLowerCase();

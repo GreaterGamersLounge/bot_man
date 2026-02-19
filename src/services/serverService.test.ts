@@ -103,7 +103,9 @@ describe('ServerService', () => {
       const dbError = new Error('Database connection failed');
       mockPrisma.server.upsert.mockRejectedValue(dbError);
 
-      await expect(ServerService.syncServer(serverData)).rejects.toThrow('Database connection failed');
+      await expect(ServerService.syncServer(serverData)).rejects.toThrow(
+        'Database connection failed'
+      );
     });
   });
 

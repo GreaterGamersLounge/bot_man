@@ -1,13 +1,5 @@
-import type {
-  ChatInputCommandInteraction,
-  GuildEmoji,
-  TextChannel
-} from 'discord.js';
-import {
-  EmbedBuilder,
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} from 'discord.js';
+import type { ChatInputCommandInteraction, GuildEmoji, TextChannel } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import { ReactionService } from '../../services/reactionService.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -47,10 +39,14 @@ function getReactionKey(emoji: string): string {
  */
 function isEmojiInServer(guildEmojis: Map<string, GuildEmoji>, emoji: string): boolean {
   // If it's not a custom emoji, it's always available
-  if (!emoji.includes(':')) {return true;}
+  if (!emoji.includes(':')) {
+    return true;
+  }
 
   const customMatch = /<a?:\w+:(\d+)>/.exec(emoji);
-  if (!customMatch?.[1]) {return true;}
+  if (!customMatch?.[1]) {
+    return true;
+  }
 
   const emojiId = customMatch[1];
   return guildEmojis.has(emojiId);
@@ -182,17 +178,15 @@ async function handleAddReactionRole(interaction: ChatInputCommandInteraction): 
 
   // Save to database
   const parsedEmoji = parseEmojiKey(emoji);
-  await ReactionService.addReactionRole(
-    BigInt(messageId),
-    parsedEmoji,
-    BigInt(role.id)
-  );
+  await ReactionService.addReactionRole(BigInt(messageId), parsedEmoji, BigInt(role.id));
 
   const messageUrl = discordUrl(interaction.guildId ?? '', channel.id, messageId);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLOR)
-    .setDescription(`<@&${role.id}> successfully linked to ${emoji} for [this message](${messageUrl})`);
+    .setDescription(
+      `<@&${role.id}> successfully linked to ${emoji} for [this message](${messageUrl})`
+    );
 
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }

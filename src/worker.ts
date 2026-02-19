@@ -48,34 +48,30 @@ async function main(): Promise<void> {
  */
 async function registerJobHandlers(boss: Awaited<ReturnType<typeof startJobQueue>>): Promise<void> {
   // Event log handler
-  await boss.work<EventLogJobData>(
-    JobQueues.EVENT_LOG,
-    { batchSize: 5 },
-    async (jobs) => {
-      for (const job of jobs) {
-        const { type, data, timestamp } = job.data;
+  await boss.work<EventLogJobData>(JobQueues.EVENT_LOG, { batchSize: 5 }, async (jobs) => {
+    for (const job of jobs) {
+      const { type, data, timestamp } = job.data;
 
-        logger.debug(`Processing event log job: ${type}`);
+      logger.debug(`Processing event log job: ${type}`);
 
-        try {
-          // Store event in database (matches Ruby Event model)
-          await prisma.event.create({
-            data: {
-              type,
-              data: data as object,
-              created_at: timestamp,
-              updated_at: new Date(),
-            },
-          });
+      try {
+        // Store event in database (matches Ruby Event model)
+        await prisma.event.create({
+          data: {
+            type,
+            data: data as object,
+            created_at: timestamp,
+            updated_at: new Date(),
+          },
+        });
 
-          logger.debug(`Event logged: ${type}`);
-        } catch (error) {
-          logger.error(`Failed to log event ${type}:`, error);
-          throw error;
-        }
+        logger.debug(`Event logged: ${type}`);
+      } catch (error) {
+        logger.error(`Failed to log event ${type}:`, error);
+        throw error;
       }
     }
-  );
+  });
 
   logger.info(`Registered handler for queue: ${JobQueues.EVENT_LOG}`);
 }

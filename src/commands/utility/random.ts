@@ -6,16 +6,10 @@ const slash: SlashCommand = {
     .setName('random')
     .setDescription('Generate a random number')
     .addIntegerOption((option) =>
-      option
-        .setName('min')
-        .setDescription('Minimum value (default: 1)')
-        .setRequired(false)
+      option.setName('min').setDescription('Minimum value (default: 1)').setRequired(false)
     )
     .addIntegerOption((option) =>
-      option
-        .setName('max')
-        .setDescription('Maximum value (default: 100)')
-        .setRequired(false)
+      option.setName('max').setDescription('Maximum value (default: 100)').setRequired(false)
     ),
 
   async execute(interaction) {

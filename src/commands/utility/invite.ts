@@ -1,11 +1,5 @@
-import type {
-  ChatInputCommandInteraction
-} from 'discord.js';
-import {
-  OAuth2Scopes,
-  PermissionFlagsBits,
-  SlashCommandBuilder,
-} from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
+import { OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../../lib/config.js';
 import type { SlashCommand } from '../../types/command.js';
 
@@ -27,9 +21,7 @@ function generateInviteUrl(clientId: string): string {
 
 // Slash command
 export const slashCommand: SlashCommand = {
-  data: new SlashCommandBuilder()
-    .setName('invite')
-    .setDescription('Get the bot invite URL'),
+  data: new SlashCommandBuilder().setName('invite').setDescription('Get the bot invite URL'),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const inviteUrl = generateInviteUrl(config.clientId);

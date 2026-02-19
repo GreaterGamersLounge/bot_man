@@ -1,8 +1,4 @@
-import type {
-  ChatInputCommandInteraction,
-  GuildMember,
-  PermissionResolvable,
-} from 'discord.js';
+import type { ChatInputCommandInteraction, GuildMember, PermissionResolvable } from 'discord.js';
 import { PermissionFlagsBits } from 'discord.js';
 import { getConfig } from './config.js';
 

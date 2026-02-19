@@ -40,9 +40,7 @@ describe('permissions', () => {
     it('should return false if member lacks any required permission', () => {
       const mockMember = {
         permissions: {
-          has: vi.fn().mockImplementation((perm) =>
-            perm === PermissionFlagsBits.ManageMessages
-          ),
+          has: vi.fn().mockImplementation((perm) => perm === PermissionFlagsBits.ManageMessages),
         },
       } as unknown as GuildMember;
 

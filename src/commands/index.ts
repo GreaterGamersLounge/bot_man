@@ -113,7 +113,10 @@ export function loadCommands(client: BotClient): void {
 export function getSlashCommandData(): SlashCommand['data'][] {
   return commandModules
     .map((rawModule) => normalizeModule(rawModule))
-    .filter((module): module is NewCommandModule & { slashCommand: SlashCommand } => module.slashCommand !== undefined)
+    .filter(
+      (module): module is NewCommandModule & { slashCommand: SlashCommand } =>
+        module.slashCommand !== undefined
+    )
     .map((module) => module.slashCommand.data);
 }
 

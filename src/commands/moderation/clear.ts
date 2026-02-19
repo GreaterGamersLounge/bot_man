@@ -1,11 +1,5 @@
-import type {
-  ChatInputCommandInteraction,
-  TextChannel
-} from 'discord.js';
-import {
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} from 'discord.js';
+import type { ChatInputCommandInteraction, TextChannel } from 'discord.js';
+import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
 
@@ -51,7 +45,8 @@ export const slashCommand: SlashCommand = {
     } catch (error) {
       logger.error('Error clearing messages:', error);
 
-      const content = 'Failed to delete messages. Messages older than 14 days cannot be bulk deleted.';
+      const content =
+        'Failed to delete messages. Messages older than 14 days cannot be bulk deleted.';
       if (interaction.deferred) {
         await interaction.editReply({ content });
       } else {

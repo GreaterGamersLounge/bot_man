@@ -8,7 +8,9 @@ const event: BotEvent<'inviteDelete'> = {
   once: false,
 
   async execute(client, invite: Invite) {
-    if (!invite.guild) {return;}
+    if (!invite.guild) {
+      return;
+    }
 
     logger.debug(`Invite deleted: ${invite.code} in ${invite.guild.name}`);
 

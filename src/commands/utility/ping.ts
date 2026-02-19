@@ -22,9 +22,7 @@ const slash: SlashCommand = {
     const wsHeartbeat = interaction.client.ws.ping;
 
     await interaction.editReply(
-      `🏓 Pong!\n` +
-        `**Roundtrip:** ${roundtrip}ms\n` +
-        `**WebSocket:** ${wsHeartbeat}ms`
+      `🏓 Pong!\n` + `**Roundtrip:** ${roundtrip}ms\n` + `**WebSocket:** ${wsHeartbeat}ms`
     );
   },
 };

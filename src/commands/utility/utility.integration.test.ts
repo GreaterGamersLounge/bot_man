@@ -72,8 +72,12 @@ describe('Utility Commands Integration', () => {
       const interaction = {
         options: {
           getInteger: vi.fn().mockImplementation((name: string) => {
-            if (name === 'min') {return 50;}
-            if (name === 'max') {return 60;}
+            if (name === 'min') {
+              return 50;
+            }
+            if (name === 'max') {
+              return 60;
+            }
             return null;
           }),
         },
@@ -98,8 +102,12 @@ describe('Utility Commands Integration', () => {
       const interaction = {
         options: {
           getInteger: vi.fn().mockImplementation((name: string) => {
-            if (name === 'min') {return 100;}
-            if (name === 'max') {return 50;}
+            if (name === 'min') {
+              return 100;
+            }
+            if (name === 'max') {
+              return 50;
+            }
             return null;
           }),
         },

@@ -29,11 +29,16 @@ export function levenshteinDistance(str1: string, str2: string): number {
       if (str1[i - 1] === str2[j - 1]) {
         set(i, j, get(i - 1, j - 1));
       } else {
-        set(i, j, 1 + Math.min(
-          get(i - 1, j),      // deletion
-          get(i, j - 1),      // insertion
-          get(i - 1, j - 1)   // substitution
-        ));
+        set(
+          i,
+          j,
+          1 +
+            Math.min(
+              get(i - 1, j), // deletion
+              get(i, j - 1), // insertion
+              get(i - 1, j - 1) // substitution
+            )
+        );
       }
     }
   }

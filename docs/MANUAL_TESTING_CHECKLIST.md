@@ -16,26 +16,31 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Utility Commands
 
 #### `/ping`
+
 - [x] Command responds with latency information
 - [x] Latency values are reasonable (< 1000ms typically)
 - [x] Response is ephemeral
 
 #### `/info`
+
 - [x] Shows bot information embed
 - [x] Guild count is accurate
 - [x] Uptime is displayed
 - [x] Version number is correct
 
 #### `/invite`
+
 - [x] Returns valid bot invite URL
 - [x] URL includes required permissions
 - [x] Response is ephemeral
 
 #### `/me`
+
 - [x] Displays invoking user's username
 - [x] Works for users with special characters in name
 
 #### `/random`
+
 - [x] Returns random number with no args (1-100 default)
 - [x] `/random max:50` returns number 1-50
 - [x] `/random min:10 max:20` returns number 10-20
@@ -46,16 +51,19 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Admin Commands (Owner Only)
 
 #### `/dm`
+
 - [x] Only bot owner can execute
 - [x] Non-owners receive "Only the bot owner can use this command."
 - [x] Successfully sends DM to target user
 - [x] Handles users with DMs disabled gracefully
 
 #### `/private`
+
 - [x] Sends "Go away..." DM to invoking user
 - [x] Handles DMs disabled error
 
 #### `/shutdown`
+
 - [x] Only bot owner can execute
 - [x] Non-owners receive rejection message
 - [x] Bot shuts down cleanly (manual restart required after test)
@@ -65,6 +73,7 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Moderation Commands
 
 #### `/clear`
+
 - [x] Requires `ManageMessages` permission
 - [x] Deletes specified number of messages (1-100)
 - [x] Does not delete messages older than 14 days
@@ -72,6 +81,7 @@ This document provides a comprehensive manual testing checklist for verifying th
 - [x] Error handling for invalid counts
 
 #### `/massmove`
+
 - [x] Requires `MoveMembers` permission
 - [x] Autocomplete suggests voice channels
 - [x] Fuzzy matching finds channels by partial name
@@ -84,6 +94,7 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Quote Commands
 
 #### `/quote get`
+
 - [x] Returns random quote with no args
 - [x] `/quote get number:5` returns quote #5
 - [x] `/quote get user:@someone` returns quote from that user
@@ -91,11 +102,13 @@ This document provides a comprehensive manual testing checklist for verifying th
 - [x] Shows quoter, quotee, and timestamp
 
 #### `/quote add`
+
 - [x] Adds quote to database
 - [x] Returns new quote ID
 - [x] Requires quotee and text
 
 #### `/quote remove`
+
 - [x] Only quoter can remove their quote
 - [x] Admin can remove any quote
 - [x] Handles non-existent quote ID
@@ -105,6 +118,7 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Reaction Role Commands
 
 #### `/reactionrole add`
+
 - [x] Requires Administrator permission
 - [x] Adds reaction to target message
 - [x] Creates database entry
@@ -113,11 +127,13 @@ This document provides a comprehensive manual testing checklist for verifying th
 - [x] Rejects emojis from other servers
 
 #### `/reactionrole remove`
+
 - [x] Removes specific emoji-role mapping
 - [x] Removes reaction from message
 - [x] Handles non-existent mapping
 
 #### `/reactionrole clear`
+
 - [x] Removes all reaction roles from message
 - [x] Removes all reactions
 - [x] Shows confirmation embed
@@ -127,6 +143,7 @@ This document provides a comprehensive manual testing checklist for verifying th
 ### Voice Commands
 
 #### `/jumpchannel create`
+
 - [x] Requires Administrator permission
 - [x] Creates NEW voice channel when `name` provided
 - [x] Designates EXISTING channel when `channel` provided
@@ -136,11 +153,13 @@ This document provides a comprehensive manual testing checklist for verifying th
 - [x] Records in database
 
 #### `/jumpchannel delete`
+
 - [x] Deletes jump channel
 - [x] Updates database record
 - [x] Rejects non-jump channels
 
 #### `/jumpchannel list`
+
 - [x] Shows all active jump channels
 - [x] Handles server with no jump channels
 
@@ -149,19 +168,23 @@ This document provides a comprehensive manual testing checklist for verifying th
 ## Event Handlers
 
 ### Guild Events
+
 - [x] **guildCreate**: Bot joins server → creates server record
 - [x] **guildMemberAdd**: New member joins → invite tracking works
 
 ### Voice Events
+
 - [x] **voiceStateUpdate**: Join jump channel → creates temp channel
 - [x] **voiceStateUpdate**: Leave empty temp channel → channel deleted
 
 ### Reaction Events
+
 - [x] **messageReactionAdd**: Add reaction → role assigned
 - [x] **messageReactionRemove**: Remove reaction → role removed
 - [x] **messageReactionAdd**: Quote reaction (📖) → quote added
 
 ### Invite Events
+
 - [x] **inviteCreate**: New invite → tracked in database
 - [x] **inviteDelete**: Invite deleted → tracked
 
@@ -200,17 +223,20 @@ This document provides a comprehensive manual testing checklist for verifying th
 ## Notes
 
 **Test Environment:**
-- Discord Server ID: _______________
-- Bot User ID: _______________
-- Test Date: _______________
-- Tester: _______________
+
+- Discord Server ID: ******\_\_\_******
+- Bot User ID: ******\_\_\_******
+- Test Date: ******\_\_\_******
+- Tester: ******\_\_\_******
 
 **Issues Found:**
+
 1.
 2.
 3.
 
 **Sign-off:**
+
 - [x] All critical features tested
 - [x] No blocking issues found
 - [x] Ready for production deployment

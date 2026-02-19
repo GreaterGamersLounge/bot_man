@@ -1,10 +1,10 @@
 AllCops:
   Exclude:
-    - "vendor/**/*"
-    - "db/schema.rb"
-    - "node_modules/**/*"
-    - "bin/*"
-    - "**/*.erb"
+    - 'vendor/**/*'
+    - 'db/schema.rb'
+    - 'node_modules/**/*'
+    - 'bin/*'
+    - '**/*.erb'
   UseCache: false
   TargetRubyVersion: 2.6
 Layout/DotPosition:
@@ -66,15 +66,15 @@ Style/PercentLiteralDelimiters:
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#percent-literal-braces
   Enabled: false
   PreferredDelimiters:
-    "%": "()"
-    "%i": "()"
-    "%q": "()"
-    "%Q": "()"
-    "%r": "{}"
-    "%s": "()"
-    "%w": "()"
-    "%W": "()"
-    "%x": "()"
+    '%': '()'
+    '%i': '()'
+    '%q': '()'
+    '%Q': '()'
+    '%r': '{}'
+    '%s': '()'
+    '%w': '()'
+    '%W': '()'
+    '%x': '()'
 Style/RaiseArgs:
   Description: Checks the arguments passed to raise/fail.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#exception-class-messages
@@ -117,8 +117,7 @@ Style/StringLiterals:
     - single_quotes
     - double_quotes
 Style/StringLiteralsInInterpolation:
-  Description:
-    Checks if uses of quotes inside expressions in interpolated strings
+  Description: Checks if uses of quotes inside expressions in interpolated strings
     match the configured preference.
   Enabled: true
   EnforcedStyle: single_quotes
@@ -126,23 +125,22 @@ Style/StringLiteralsInInterpolation:
     - single_quotes
     - double_quotes
 Style/TrailingCommaInArguments:
-  Description: "Checks for trailing comma in argument lists."
-  StyleGuide: "https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas"
+  Description: 'Checks for trailing comma in argument lists.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
   Enabled: false
   EnforcedStyleForMultiline: no_comma
 Style/TrailingCommaInArrayLiteral:
-  Description: "Checks for trailing comma in array literals."
-  StyleGuide: "https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas"
+  Description: 'Checks for trailing comma in array literals.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
   Enabled: false
   EnforcedStyleForMultiline: no_comma
 Style/TrailingCommaInHashLiteral:
-  Description: "Checks for trailing comma in hash literals."
-  StyleGuide: "https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas"
+  Description: 'Checks for trailing comma in hash literals.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
   Enabled: false
   EnforcedStyleForMultiline: no_comma
 Metrics/AbcSize:
-  Description:
-    A calculated magnitude based on number of assignments, branches, and
+  Description: A calculated magnitude based on number of assignments, branches, and
     conditions.
   Enabled: false
   Max: 15
@@ -157,8 +155,7 @@ Metrics/ModuleLength:
   Description: Avoid modules longer than 100 lines of code.
   Enabled: false
 Metrics/CyclomaticComplexity:
-  Description:
-    A complexity metric that is strongly correlated to the number of test
+  Description: A complexity metric that is strongly correlated to the number of test
     cases needed to validate a method.
   Enabled: false
   Max: 6
@@ -175,8 +172,7 @@ Metrics/ParameterLists:
   Max: 5
   CountKeywordArgs: true
 Metrics/PerceivedComplexity:
-  Description:
-    A complexity metric geared towards measuring complexity for a human
+  Description: A complexity metric geared towards measuring complexity for a human
     reader.
   Enabled: false
   Max: 7
@@ -184,19 +180,19 @@ Layout/LineLength:
   Max: 120
   IgnoredPatterns: ['\A\s*#']
   Exclude:
-    - "app/services/normalization_qa/**/*"
-    - "db/migrate/**/*"
+    - 'app/services/normalization_qa/**/*'
+    - 'db/migrate/**/*'
 Layout/EndOfLine:
   EnforcedStyle: lf
 Metrics/BlockLength:
   Enabled: true
   Exclude:
-    - "spec/**/*"
-    - "config/routes.rb"
-    - "lib/tasks/**/*"
-    - "app/services/normalization/**/*"
-    - "app/services/normalization_qa/**/*"
-    - "db/migrate/**/*"
+    - 'spec/**/*'
+    - 'config/routes.rb'
+    - 'lib/tasks/**/*'
+    - 'app/services/normalization/**/*'
+    - 'app/services/normalization_qa/**/*'
+    - 'db/migrate/**/*'
 Lint/AssignmentInCondition:
   Description: Don't use assignment in conditions.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#safe-assignment-in-condition
@@ -242,8 +238,7 @@ Style/PerlBackrefs:
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#no-perl-regexp-last-matchers
   Enabled: false
 Style/Send:
-  Description:
-    Prefer `Object#__send__` or `Object#public_send` to `send`, as `send`
+  Description: Prefer `Object#__send__` or `Object#public_send` to `send`, as `send`
     may overlap with existing methods.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#prefer-public-send
   Enabled: false
@@ -252,8 +247,7 @@ Style/SpecialGlobalVars:
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#no-cryptic-perlisms
   Enabled: false
 Style/VariableInterpolation:
-  Description:
-    Don't interpolate global, instance and class variables directly in
+  Description: Don't interpolate global, instance and class variables directly in
     strings.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#curlies-interpolate
   Enabled: false

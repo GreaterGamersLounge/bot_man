@@ -187,10 +187,7 @@ describe('ReactionService', () => {
     it('should return null when no mapping exists', async () => {
       mockPrisma.reaction_role.findFirst.mockResolvedValue(null);
 
-      const result = await ReactionService.getRoleForReaction(
-        BigInt('444444444444444444'),
-        '👎'
-      );
+      const result = await ReactionService.getRoleForReaction(BigInt('444444444444444444'), '👎');
 
       expect(result).toBeNull();
     });

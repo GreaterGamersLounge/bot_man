@@ -71,10 +71,12 @@ describe('Quote Commands Integration', () => {
       await slashCommand.execute(interaction as never);
 
       expect(mockPrisma.quote.findMany).toHaveBeenCalled();
-      expect(mockReply).toHaveBeenCalledWith(expect.objectContaining({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        embeds: expect.any(Array),
-      }));
+      expect(mockReply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          embeds: expect.any(Array),
+        })
+      );
     });
 
     it('should return no quote found message when database is empty', async () => {
@@ -144,10 +146,12 @@ describe('Quote Commands Integration', () => {
           server_uid: BigInt('123456789012345678'),
         },
       });
-      expect(mockReply).toHaveBeenCalledWith(expect.objectContaining({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        embeds: expect.any(Array),
-      }));
+      expect(mockReply).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          embeds: expect.any(Array),
+        })
+      );
     });
   });
 

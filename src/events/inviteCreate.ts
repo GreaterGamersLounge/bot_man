@@ -8,7 +8,9 @@ const event: BotEvent<'inviteCreate'> = {
   once: false,
 
   async execute(client, invite: Invite) {
-    if (!invite.guild) {return;}
+    if (!invite.guild) {
+      return;
+    }
 
     logger.debug(`Invite created: ${invite.code} in ${invite.guild.name}`);
 

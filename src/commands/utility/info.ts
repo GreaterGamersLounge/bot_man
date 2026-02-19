@@ -3,9 +3,7 @@ import { getConfig } from '../../lib/config.js';
 import type { SlashCommand } from '../../types/index.js';
 
 const slash: SlashCommand = {
-  data: new SlashCommandBuilder()
-    .setName('info')
-    .setDescription('Get information about the bot'),
+  data: new SlashCommandBuilder().setName('info').setDescription('Get information about the bot'),
 
   async execute(interaction) {
     const config = getConfig();

@@ -1,13 +1,5 @@
-import type {
-  ChatInputCommandInteraction,
-  Guild,
-  VoiceChannel
-} from 'discord.js';
-import {
-  ChannelType,
-  PermissionFlagsBits,
-  SlashCommandBuilder
-} from 'discord.js';
+import type { ChatInputCommandInteraction, Guild, VoiceChannel } from 'discord.js';
+import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -49,9 +41,7 @@ export const slashCommand: SlashCommand = {
         )
     )
     .addSubcommand((subcommand) =>
-      subcommand
-        .setName('list')
-        .setDescription('List all jump channels in this server')
+      subcommand.setName('list').setDescription('List all jump channels in this server')
     ) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -104,7 +94,8 @@ async function handleCreateJumpChannel(
   // Must provide either name or channel, but not both
   if (!channelName && !existingChannel) {
     await interaction.reply({
-      content: 'Please provide either a `name` to create a new channel, or select an existing `channel`.',
+      content:
+        'Please provide either a `name` to create a new channel, or select an existing `channel`.',
       ephemeral: true,
     });
     return;
@@ -171,15 +162,15 @@ async function handleCreateJumpChannel(
     ephemeral: true,
   });
 
-  logger.info(`Jump channel "${targetChannel.name}" ${action} by ${interaction.user.tag} in ${guild.name}`);
+  logger.info(
+    `Jump channel "${targetChannel.name}" ${action} by ${interaction.user.tag} in ${guild.name}`
+  );
 }
 
 /**
  * Handle /jumpchannel delete
  */
-async function handleDeleteJumpChannel(
-  interaction: ChatInputCommandInteraction
-): Promise<void> {
+async function handleDeleteJumpChannel(interaction: ChatInputCommandInteraction): Promise<void> {
   const guild = interaction.guild;
   if (!guild) {
     await interaction.reply({
@@ -226,7 +217,9 @@ async function handleDeleteJumpChannel(
 
   // Delete the Discord channel
   const channelName = channel.name;
-  await (channel as { delete: (reason?: string) => Promise<unknown> }).delete('Jump channel deleted by admin');
+  await (channel as { delete: (reason?: string) => Promise<unknown> }).delete(
+    'Jump channel deleted by admin'
+  );
 
   await interaction.reply({
     content: `Temporary jump channel \`${channelName}\` deleted`,
@@ -243,7 +236,6 @@ async function handleListJumpChannels(
   interaction: ChatInputCommandInteraction,
   guild: Guild
 ): Promise<void> {
-
   const jumpChannels = await prisma.temporary_voice_channel.findMany({
     where: {
       server_uid: BigInt(guild.id),
@@ -263,7 +255,9 @@ async function handleListJumpChannels(
   const channelList = jumpChannels
     .map((jc) => {
       const channel = guild.channels.cache.get(jc.channel_uid.toString());
-      return channel ? `• ${channel.name} (<#${channel.id}>)` : `• Unknown channel (${jc.channel_uid})`;
+      return channel
+        ? `• ${channel.name} (<#${channel.id}>)`
+        : `• Unknown channel (${jc.channel_uid})`;
     })
     .join('\n');
 

@@ -7,9 +7,15 @@ const event: BotEvent<'messageReactionRemove'> = {
   name: 'messageReactionRemove',
   once: false,
 
-  async execute(client, reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
+  async execute(
+    client,
+    reaction: MessageReaction | PartialMessageReaction,
+    user: User | PartialUser
+  ) {
     // Ignore bot reactions
-    if (user.bot) {return;}
+    if (user.bot) {
+      return;
+    }
 
     try {
       // Fetch partial reaction if needed
@@ -25,7 +31,9 @@ const event: BotEvent<'messageReactionRemove'> = {
       const message = reaction.message;
       const guild = message.guild;
 
-      if (!guild) {return;} // Ignore DM reactions
+      if (!guild) {
+        return;
+      } // Ignore DM reactions
 
       // Get the emoji key (for both custom and unicode emojis)
       const emojiKey = getEmojiKey(reaction);

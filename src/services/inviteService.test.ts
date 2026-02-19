@@ -196,11 +196,7 @@ describe('InviteService', () => {
   describe('getActiveInvites', () => {
     it('should return active invites sorted by uses', async () => {
       const serverUid = BigInt('123456789012345678');
-      const invites = [
-        mockInvite({ uses: 10 }),
-        mockInvite({ uses: 50 }),
-        mockInvite({ uses: 5 }),
-      ];
+      const invites = [mockInvite({ uses: 10 }), mockInvite({ uses: 50 }), mockInvite({ uses: 5 })];
 
       mockPrisma.invite.findMany.mockResolvedValue(invites);
 

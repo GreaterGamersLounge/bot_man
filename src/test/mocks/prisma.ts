@@ -86,7 +86,10 @@ export const mockTemporaryVoiceChannel = (overrides = {}): Record<string, unknow
 });
 
 // Create mock prisma client
-export const createMockPrismaClient = (): Record<string, Record<string, ReturnType<typeof vi.fn>>> => ({
+export const createMockPrismaClient = (): Record<
+  string,
+  Record<string, ReturnType<typeof vi.fn>>
+> => ({
   server: {
     upsert: vi.fn(),
     findFirst: vi.fn(),

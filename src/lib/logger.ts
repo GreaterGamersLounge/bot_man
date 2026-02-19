@@ -35,10 +35,7 @@ const prodFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
  */
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
-  format: combine(
-    errors({ stack: true }),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' })
-  ),
+  format: combine(errors({ stack: true }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' })),
   defaultMeta: { service: 'bot_man' },
   transports: [
     new winston.transports.Console({

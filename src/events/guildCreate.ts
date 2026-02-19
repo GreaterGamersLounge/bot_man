@@ -56,9 +56,8 @@ async function syncServer(guild: Guild): Promise<void> {
 async function syncUsers(guild: Guild): Promise<void> {
   try {
     // Fetch all members if not cached
-    const members = guild.members.cache.size > 0
-      ? guild.members.cache
-      : await guild.members.fetch();
+    const members =
+      guild.members.cache.size > 0 ? guild.members.cache : await guild.members.fetch();
 
     for (const member of members.values()) {
       try {
@@ -82,7 +81,10 @@ async function syncUsers(guild: Guild): Promise<void> {
 /**
  * Cache invites and sync to database
  */
-async function cacheInvites(client: Parameters<BotEvent['execute']>[0], guild: Guild): Promise<void> {
+async function cacheInvites(
+  client: Parameters<BotEvent['execute']>[0],
+  guild: Guild
+): Promise<void> {
   try {
     const invites = await guild.invites.fetch();
     const inviteMap = new Collection<string, InviteCacheEntry>();
