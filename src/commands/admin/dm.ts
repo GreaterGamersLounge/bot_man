@@ -14,7 +14,8 @@ export const slashCommand: SlashCommand = {
     )
     .addStringOption((option) =>
       option.setName('message').setDescription('The message to send').setRequired(true)
-    ),
+    )
+    .setDMPermission(true),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Only allow bot owner

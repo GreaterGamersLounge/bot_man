@@ -7,7 +7,8 @@ import type { SlashCommand } from '../../types/command.js';
 export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('private')
-    .setDescription('Send a private message to yourself'),
+    .setDescription('Send a private message to yourself')
+    .setDMPermission(true),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     try {

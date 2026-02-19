@@ -66,6 +66,7 @@ export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('reload')
     .setDescription('Reloads a command (owner only, dev server only)')
+    .setDMPermission(false)
     .addStringOption((option) =>
       option
         .setName('command')

@@ -65,6 +65,7 @@ export const slashCommand: SlashCommand = {
     .setName('reactionrole')
     .setDescription('Manage reaction roles')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('add')

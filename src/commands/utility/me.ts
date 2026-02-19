@@ -4,7 +4,10 @@ import type { SlashCommand } from '../../types/command.js';
 
 // Slash command
 export const slashCommand: SlashCommand = {
-  data: new SlashCommandBuilder().setName('me').setDescription('Display your username'),
+  data: new SlashCommandBuilder()
+    .setName('me')
+    .setDescription('Display your username')
+    .setDMPermission(true),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const member = interaction.member;

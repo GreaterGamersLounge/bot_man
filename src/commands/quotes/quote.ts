@@ -257,19 +257,15 @@ export const slashCommand: SlashCommand = {
         .addUserOption((option) =>
           option.setName('user').setDescription('Filter quotes by this user')
         )
-    ) as SlashCommandBuilder,
+    )
+    .setDMPermission(true) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (!interaction.guild) {
-      await interaction.reply({
-        content: 'This command can only be used in a server.',
-        ephemeral: true,
-      });
-      return;
-    }
-
     const subcommand = interaction.options.getSubcommand();
-    const serverUid = BigInt(interaction.guild.id);
+    // In DMs, use the user's ID as the "server" ID for personal quotes
+    const serverUid = interaction.guild
+      ? BigInt(interaction.guild.id)
+      : BigInt(interaction.user.id);
 
     try {
       switch (subcommand) {

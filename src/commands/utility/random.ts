@@ -5,6 +5,7 @@ const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('random')
     .setDescription('Generate a random number')
+    .setDMPermission(true)
     .addIntegerOption((option) =>
       option.setName('min').setDescription('Minimum value (default: 1)').setRequired(false)
     )

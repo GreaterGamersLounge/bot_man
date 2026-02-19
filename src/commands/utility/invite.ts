@@ -21,7 +21,10 @@ function generateInviteUrl(clientId: string): string {
 
 // Slash command
 export const slashCommand: SlashCommand = {
-  data: new SlashCommandBuilder().setName('invite').setDescription('Get the bot invite URL'),
+  data: new SlashCommandBuilder()
+    .setName('invite')
+    .setDescription('Get the bot invite URL')
+    .setDMPermission(true),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const inviteUrl = generateInviteUrl(config.clientId);

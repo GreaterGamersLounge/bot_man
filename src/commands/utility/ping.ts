@@ -4,7 +4,8 @@ import type { SlashCommand } from '../../types/index.js';
 const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('ping')
-    .setDescription('Check bot latency and response time'),
+    .setDescription('Check bot latency and response time')
+    .setDMPermission(true),
 
   async execute(interaction) {
     const response = await interaction.reply({

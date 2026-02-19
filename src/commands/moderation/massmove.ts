@@ -59,6 +59,7 @@ export const slashCommand: SlashCommand = {
     .setName('massmove')
     .setDescription('Move all users from one voice channel to another')
     .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
+    .setDMPermission(false)
     .addStringOption((option) =>
       option
         .setName('source')

@@ -10,6 +10,7 @@ export const slashCommand: SlashCommand = {
     .setName('jumpchannel')
     .setDescription('Manage temporary voice jump channels')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('create')

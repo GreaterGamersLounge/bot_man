@@ -9,6 +9,7 @@ export const slashCommand: SlashCommand = {
     .setName('clear')
     .setDescription('Bulk delete messages in the channel')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false)
     .addIntegerOption((option) =>
       option
         .setName('count')

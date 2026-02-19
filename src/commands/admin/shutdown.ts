@@ -8,7 +8,8 @@ import type { SlashCommand } from '../../types/command.js';
 export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('shutdown')
-    .setDescription('Shutdown the bot (owner only)'),
+    .setDescription('Shutdown the bot (owner only)')
+    .setDMPermission(true),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Only allow bot owner
