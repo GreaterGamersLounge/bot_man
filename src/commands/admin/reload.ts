@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import type { BotClient } from '../../bot.js';
 import { config } from '../../lib/config.js';
 import { logger } from '../../lib/logger.js';
@@ -66,7 +66,7 @@ export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('reload')
     .setDescription('Reloads a command (owner only, dev server only)')
-    .setDMPermission(false)
+    .setContexts([InteractionContextType.Guild])
     .addStringOption((option) =>
       option
         .setName('command')

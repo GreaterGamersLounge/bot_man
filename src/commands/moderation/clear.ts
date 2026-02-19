@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction, TextChannel } from 'discord.js';
-import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
 
@@ -9,7 +9,7 @@ export const slashCommand: SlashCommand = {
     .setName('clear')
     .setDescription('Bulk delete messages in the channel')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .setDMPermission(false)
+    .setContexts([InteractionContextType.Guild])
     .addIntegerOption((option) =>
       option
         .setName('count')

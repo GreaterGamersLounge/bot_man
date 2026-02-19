@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, OAuth2Scopes, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../../lib/config.js';
 import type { SlashCommand } from '../../types/command.js';
 
@@ -24,7 +24,7 @@ export const slashCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('invite')
     .setDescription('Get the bot invite URL')
-    .setDMPermission(true),
+    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const inviteUrl = generateInviteUrl(config.clientId);

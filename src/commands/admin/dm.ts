@@ -1,5 +1,5 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
-import { SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import { config } from '../../lib/config.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -15,7 +15,7 @@ export const slashCommand: SlashCommand = {
     .addStringOption((option) =>
       option.setName('message').setDescription('The message to send').setRequired(true)
     )
-    .setDMPermission(true),
+    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Only allow bot owner

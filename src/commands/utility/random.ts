@@ -1,11 +1,11 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types/index.js';
 
 const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('random')
     .setDescription('Generate a random number')
-    .setDMPermission(true)
+    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel])
     .addIntegerOption((option) =>
       option.setName('min').setDescription('Minimum value (default: 1)').setRequired(false)
     )

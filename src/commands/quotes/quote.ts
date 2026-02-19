@@ -5,6 +5,7 @@ import {
   ButtonStyle,
   ComponentType,
   EmbedBuilder,
+  InteractionContextType,
   ModalBuilder,
   SlashCommandBuilder,
   TextInputBuilder,
@@ -93,21 +94,26 @@ function createPaginationButtons(
  * Create a modal for jumping to a specific page
  */
 function createPageJumpModal(totalPages: number): ModalBuilder {
-  const modal = new ModalBuilder()
-    .setCustomId('quote_page_jump')
-    .setTitle('Jump to Page');
-
   const pageInput = new TextInputBuilder()
     .setCustomId('page_number')
-    .setLabel(`Enter page number (1-${totalPages})`)
-    .setStyle(TextInputStyle.Short)
     .setPlaceholder(`1-${totalPages}`)
+    .setStyle(TextInputStyle.Short)
     .setRequired(true)
     .setMinLength(1)
     .setMaxLength(String(totalPages).length + 1);
 
+  // Use the data property to set the label directly to avoid deprecated setLabel
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  pageInput.setLabel(`Enter page number (1-${totalPages})`);
+
   const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput);
-  modal.addComponents(actionRow);
+
+  const modal = new ModalBuilder()
+    .setCustomId('quote_page_jump')
+    .setTitle('Jump to Page');
+
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  modal.setComponents([actionRow]);
 
   return modal;
 }
@@ -116,13 +122,13 @@ function createPageJumpModal(totalPages: number): ModalBuilder {
  * Create a combined embed for displaying multiple quotes on a page
  */
 async function createQuoteListEmbed(
-  quotes: Array<{
+  quotes: {
     id: bigint;
     quote: string | null;
     quoter_uid: bigint | null;
     quotee_uid: bigint | null;
     created_at: Date;
-  }>,
+  }[],
   interaction: ChatInputCommandInteraction,
   pageNumber: number,
   totalPages: number
@@ -135,7 +141,9 @@ async function createQuoteListEmbed(
     if (guild && quote.quotee_uid) {
       try {
         const member = await guild.members.fetch(quote.quotee_uid.toString()).catch(() => null);
-        if (member) quoteeName = member.displayName;
+        if (member) {
+          quoteeName = member.displayName;
+        }
       } catch {
         // Member not found
       }
@@ -258,7 +266,7 @@ export const slashCommand: SlashCommand = {
           option.setName('user').setDescription('Filter quotes by this user')
         )
     )
-    .setDMPermission(true) as SlashCommandBuilder,
+    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const subcommand = interaction.options.getSubcommand();
@@ -337,24 +345,27 @@ async function handleGetQuote(
   const embed = await createQuoteEmbed(quotes[currentIndex], interaction);
   const buttons = createPaginationButtons(currentIndex, quotes.length);
 
-  const response = await interaction.reply({
+  const responseData = await interaction.reply({
     embeds: [embed],
     components: [buttons],
-    fetchReply: true,
+    withResponse: true,
   });
+  const response = responseData.resource?.message;
 
   // Only create collector if there are multiple quotes
-  if (quotes.length <= 1) return;
+  if (quotes.length <= 1 || !response) {
+    return;
+  }
 
   const collector = response.createMessageComponentCollector({
     componentType: ComponentType.Button,
     time: PAGINATION_TIMEOUT,
   });
 
-  collector.on('collect', async (buttonInteraction) => {
+  collector.on('collect', (buttonInteraction) => {
     // Only allow the original user to navigate
     if (buttonInteraction.user.id !== interaction.user.id) {
-      await buttonInteraction.reply({
+      void buttonInteraction.reply({
         content: 'Only the person who requested the quote can navigate.',
         ephemeral: true,
       });
@@ -364,36 +375,39 @@ async function handleGetQuote(
     // Handle page jump modal
     if (buttonInteraction.customId === 'quote_page') {
       const modal = createPageJumpModal(quotes.length);
-      await buttonInteraction.showModal(modal);
+      void buttonInteraction.showModal(modal);
 
-      try {
-        const modalInteraction = await buttonInteraction.awaitModalSubmit({
-          time: 60_000,
-          filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
-        });
-
-        const pageInput = modalInteraction.fields.getTextInputValue('page_number');
-        const pageNumber = parseInt(pageInput, 10);
-
-        if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > quotes.length) {
-          await modalInteraction.reply({
-            content: `Please enter a valid page number between 1 and ${quotes.length}.`,
-            ephemeral: true,
+      void (async (): Promise<void> => {
+        try {
+          const modalInteraction = await buttonInteraction.awaitModalSubmit({
+            time: 60_000,
+            filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
           });
-          return;
+
+          const pageInput = modalInteraction.fields.getTextInputValue('page_number');
+          const pageNumber = parseInt(pageInput, 10);
+
+          if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > quotes.length) {
+            await modalInteraction.reply({
+              content: `Please enter a valid page number between 1 and ${quotes.length}.`,
+              ephemeral: true,
+            });
+            return;
+          }
+
+          currentIndex = pageNumber - 1;
+          const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+          const newButtons = createPaginationButtons(currentIndex, quotes.length);
+
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Discord.js ModalSubmitInteraction.update() type resolution issue
+          await modalInteraction.update({
+            embeds: [newEmbed],
+            components: [newButtons],
+          });
+        } catch {
+          // Modal timed out or was dismissed
         }
-
-        currentIndex = pageNumber - 1;
-        const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
-        const newButtons = createPaginationButtons(currentIndex, quotes.length);
-
-        await modalInteraction.update({
-          embeds: [newEmbed],
-          components: [newButtons],
-        });
-      } catch {
-        // Modal timed out or was dismissed
-      }
+      })();
       return;
     }
 
@@ -404,23 +418,24 @@ async function handleGetQuote(
       currentIndex = currentIndex >= quotes.length - 1 ? 0 : currentIndex + 1;
     }
 
-    const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
-    const newButtons = createPaginationButtons(currentIndex, quotes.length);
+    const handleUpdate = async (): Promise<void> => {
+      const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+      const newButtons = createPaginationButtons(currentIndex, quotes.length);
 
-    await buttonInteraction.update({
-      embeds: [newEmbed],
-      components: [newButtons],
-    });
+      await buttonInteraction.update({
+        embeds: [newEmbed],
+        components: [newButtons],
+      });
+    };
+    void handleUpdate();
   });
 
-  collector.on('end', async () => {
+  collector.on('end', () => {
     // Disable buttons when collector times out
     const disabledButtons = createPaginationButtons(currentIndex, quotes.length, true);
-    try {
-      await response.edit({ components: [disabledButtons] });
-    } catch {
+    void response.edit({ components: [disabledButtons] }).catch(() => {
       // Message may have been deleted
-    }
+    });
   });
 }
 
@@ -511,7 +526,7 @@ async function handleListQuotes(
     const totalPages = Math.ceil(quotes.length / QUOTES_PER_PAGE);
     let currentPage = 0;
 
-    const getPageQuotes = (page: number) => {
+    const getPageQuotes = (page: number): typeof quotes => {
       const start = page * QUOTES_PER_PAGE;
       return quotes.slice(start, start + QUOTES_PER_PAGE);
     };
@@ -532,52 +547,57 @@ async function handleListQuotes(
     await interaction.editReply('Please check your direct messages.');
 
     // Only create collector if there are multiple pages
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) {
+      return;
+    }
 
     const collector = dmMessage.createMessageComponentCollector({
       componentType: ComponentType.Button,
       time: PAGINATION_TIMEOUT,
     });
 
-    collector.on('collect', async (buttonInteraction) => {
+    collector.on('collect', (buttonInteraction) => {
       // Handle page jump modal
       if (buttonInteraction.customId === 'quote_page') {
         const modal = createPageJumpModal(totalPages);
-        await buttonInteraction.showModal(modal);
+        void buttonInteraction.showModal(modal);
 
-        try {
-          const modalInteraction = await buttonInteraction.awaitModalSubmit({
-            time: 60_000,
-            filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
-          });
-
-          const pageInput = modalInteraction.fields.getTextInputValue('page_number');
-          const pageNumber = parseInt(pageInput, 10);
-
-          if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
-            await modalInteraction.reply({
-              content: `Please enter a valid page number between 1 and ${totalPages}.`,
-              ephemeral: true,
+        void (async (): Promise<void> => {
+          try {
+            const modalInteraction = await buttonInteraction.awaitModalSubmit({
+              time: 60_000,
+              filter: (i) => i.customId === 'quote_page_jump' && i.user.id === interaction.user.id,
             });
-            return;
+
+            const pageInput = modalInteraction.fields.getTextInputValue('page_number');
+            const pageNumber = parseInt(pageInput, 10);
+
+            if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
+              await modalInteraction.reply({
+                content: `Please enter a valid page number between 1 and ${totalPages}.`,
+                ephemeral: true,
+              });
+              return;
+            }
+
+            currentPage = pageNumber - 1;
+            const newEmbed = await createQuoteListEmbed(
+              getPageQuotes(currentPage),
+              interaction,
+              currentPage + 1,
+              totalPages
+            );
+            const newButtons = createPaginationButtons(currentPage, totalPages);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Discord.js ModalSubmitInteraction.update() type resolution issue
+            await modalInteraction.update({
+              embeds: [newEmbed],
+              components: [newButtons],
+            });
+          } catch {
+            // Modal timed out or was dismissed
           }
-
-          currentPage = pageNumber - 1;
-          const newEmbed = await createQuoteListEmbed(
-            getPageQuotes(currentPage),
-            interaction,
-            currentPage + 1,
-            totalPages
-          );
-          const newButtons = createPaginationButtons(currentPage, totalPages);
-
-          await modalInteraction.update({
-            embeds: [newEmbed],
-            components: [newButtons],
-          });
-        } catch {
-          // Modal timed out or was dismissed
-        }
+        })();
         return;
       }
 
@@ -588,28 +608,29 @@ async function handleListQuotes(
         currentPage = currentPage >= totalPages - 1 ? 0 : currentPage + 1;
       }
 
-      const newEmbed = await createQuoteListEmbed(
-        getPageQuotes(currentPage),
-        interaction,
-        currentPage + 1,
-        totalPages
-      );
-      const newButtons = createPaginationButtons(currentPage, totalPages);
+      const handleUpdate = async (): Promise<void> => {
+        const newEmbed = await createQuoteListEmbed(
+          getPageQuotes(currentPage),
+          interaction,
+          currentPage + 1,
+          totalPages
+        );
+        const newButtons = createPaginationButtons(currentPage, totalPages);
 
-      await buttonInteraction.update({
-        embeds: [newEmbed],
-        components: [newButtons],
-      });
+        await buttonInteraction.update({
+          embeds: [newEmbed],
+          components: [newButtons],
+        });
+      };
+      void handleUpdate();
     });
 
-    collector.on('end', async () => {
+    collector.on('end', () => {
       // Disable buttons when collector times out
       const disabledButtons = createPaginationButtons(currentPage, totalPages, true);
-      try {
-        await dmMessage.edit({ components: [disabledButtons] });
-      } catch {
+      void dmMessage.edit({ components: [disabledButtons] }).catch(() => {
         // Message may have been deleted
-      }
+      });
     });
   } catch (error) {
     logger.error('Failed to send DM:', error);

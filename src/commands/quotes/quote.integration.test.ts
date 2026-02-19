@@ -101,7 +101,7 @@ describe('Quote Commands Integration', () => {
       await slashCommand.execute(interaction as never);
 
       expect(mockReply).toHaveBeenCalledWith({
-        content: 'No quote found.',
+        content: 'No quotes found.',
         ephemeral: true,
       });
     });
@@ -262,16 +262,22 @@ describe('Quote Commands Integration', () => {
     });
   });
 
-  describe('guild requirement', () => {
-    it('should reject commands outside of guilds', async () => {
+  describe('DM support', () => {
+    it('should work in DMs using user ID as server context', async () => {
       const { slashCommand } = await import('./quote.js');
+
+      // Mock a quote stored under the user's ID
+      mockPrisma.quote.findMany.mockResolvedValue([]);
 
       const mockReply = vi.fn();
 
       const interaction = {
         guild: null,
+        user: { id: '222222222222222222' },
         options: {
           getSubcommand: vi.fn().mockReturnValue('get'),
+          getInteger: vi.fn().mockReturnValue(null),
+          getUser: vi.fn().mockReturnValue(null),
         },
         reply: mockReply,
         replied: false,
@@ -280,8 +286,9 @@ describe('Quote Commands Integration', () => {
 
       await slashCommand.execute(interaction as never);
 
+      // Should return "no quotes found" instead of "guild only" error
       expect(mockReply).toHaveBeenCalledWith({
-        content: 'This command can only be used in a server.',
+        content: 'No quotes found.',
         ephemeral: true,
       });
     });

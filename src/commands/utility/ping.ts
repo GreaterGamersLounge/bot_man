@@ -1,11 +1,11 @@
-import { SlashCommandBuilder } from 'discord.js';
+import { InteractionContextType, SlashCommandBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types/index.js';
 
 const slash: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Check bot latency and response time')
-    .setDMPermission(true),
+    .setContexts([InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]),
 
   async execute(interaction) {
     const response = await interaction.reply({

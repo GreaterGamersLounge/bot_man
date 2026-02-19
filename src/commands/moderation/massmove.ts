@@ -1,9 +1,9 @@
 import type {
-  AutocompleteInteraction,
-  ChatInputCommandInteraction,
-  VoiceChannel,
+    AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    VoiceChannel,
 } from 'discord.js';
-import { ChannelType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ChannelType, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { levenshtein } from '../../lib/levenshtein.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
@@ -59,7 +59,7 @@ export const slashCommand: SlashCommand = {
     .setName('massmove')
     .setDescription('Move all users from one voice channel to another')
     .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
-    .setDMPermission(false)
+    .setContexts([InteractionContextType.Guild])
     .addStringOption((option) =>
       option
         .setName('source')

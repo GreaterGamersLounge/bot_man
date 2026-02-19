@@ -15,6 +15,7 @@ vi.mock('discord.js', async () => {
     SlashCommandBuilder: vi.fn().mockImplementation(() => ({
       setName: vi.fn().mockReturnThis(),
       setDescription: vi.fn().mockReturnThis(),
+      setContexts: vi.fn().mockReturnThis(),
       addIntegerOption: vi.fn().mockImplementation((fn: (opt: unknown) => unknown) => {
         fn({
           setName: vi.fn().mockReturnThis(),
@@ -26,6 +27,7 @@ vi.mock('discord.js', async () => {
         return {
           setName: vi.fn().mockReturnThis(),
           setDescription: vi.fn().mockReturnThis(),
+          setContexts: vi.fn().mockReturnThis(),
           addIntegerOption: vi.fn().mockReturnThis(),
         };
       }),
