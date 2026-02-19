@@ -1,18 +1,27 @@
 import type { ChatInputCommandInteraction, GuildMember, Message, User } from 'discord.js';
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { prisma } from '../../lib/database.js';
 import { logger } from '../../lib/logger.js';
 import type { SlashCommand } from '../../types/command.js';
 
+// Timeout for pagination buttons (2 minutes)
+const PAGINATION_TIMEOUT = 120_000;
 const EMBED_COLOR = 0x3fb426; // Green color matching Ruby version
 
 /**
- * Helper to get a random quote from the database
+ * Helper to get all quotes for pagination
  */
-async function getRandomQuote(
+async function getAllQuotes(
   serverUid: bigint,
   quoteeUid?: bigint
-): Promise<Awaited<ReturnType<typeof prisma.quote.findFirst>> | undefined> {
+): Promise<Awaited<ReturnType<typeof prisma.quote.findMany>>> {
   const whereClause: { server_uid: bigint; quotee_uid?: bigint } = {
     server_uid: serverUid,
   };
@@ -21,17 +30,10 @@ async function getRandomQuote(
     whereClause.quotee_uid = quoteeUid;
   }
 
-  // Get random quote using raw SQL for proper randomization
-  const quotes = await prisma.quote.findMany({
+  return prisma.quote.findMany({
     where: whereClause,
+    orderBy: { id: 'asc' },
   });
-
-  if (quotes.length === 0) {
-    return null;
-  }
-
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  return quotes[randomIndex];
 }
 
 /**
@@ -52,6 +54,35 @@ function getUserAvatarUrl(member: GuildMember | User | null): string | null {
     return member.displayAvatarURL({ size: 64 });
   }
   return null;
+}
+
+/**
+ * Create pagination buttons for navigating quotes
+ */
+function createPaginationButtons(
+  currentIndex: number,
+  totalQuotes: number,
+  disabled = false
+): ActionRowBuilder<ButtonBuilder> {
+  const prevButton = new ButtonBuilder()
+    .setCustomId('quote_prev')
+    .setEmoji('◀️')
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(disabled || totalQuotes <= 1);
+
+  const nextButton = new ButtonBuilder()
+    .setCustomId('quote_next')
+    .setEmoji('▶️')
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(disabled || totalQuotes <= 1);
+
+  const pageIndicator = new ButtonBuilder()
+    .setCustomId('quote_page')
+    .setLabel(`${currentIndex + 1} / ${totalQuotes}`)
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(true);
+
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(prevButton, pageIndicator, nextButton);
 }
 
 /**
@@ -197,7 +228,7 @@ export const slashCommand: SlashCommand = {
 };
 
 /**
- * Handle /quote get
+ * Handle /quote get - with pagination support
  */
 async function handleGetQuote(
   interaction: ChatInputCommandInteraction,
@@ -206,31 +237,88 @@ async function handleGetQuote(
   const user = interaction.options.getUser('user');
   const quoteId = interaction.options.getInteger('id');
 
-  let quote;
-
+  // If getting a specific quote by ID, no pagination needed
   if (quoteId) {
-    // Get specific quote by ID
-    quote = await prisma.quote.findFirst({
+    const quote = await prisma.quote.findFirst({
       where: {
         id: BigInt(quoteId),
         server_uid: serverUid,
       },
     });
-  } else if (user) {
-    // Get random quote from specific user
-    quote = await getRandomQuote(serverUid, BigInt(user.id));
-  } else {
-    // Get random quote from anyone
-    quote = await getRandomQuote(serverUid);
-  }
 
-  if (!quote) {
-    await interaction.reply({ content: 'No quote found.', ephemeral: true });
+    if (!quote) {
+      await interaction.reply({ content: 'No quote found.', ephemeral: true });
+      return;
+    }
+
+    const embed = await createQuoteEmbed(quote, interaction);
+    await interaction.reply({ embeds: [embed] });
     return;
   }
 
-  const embed = await createQuoteEmbed(quote, interaction);
-  await interaction.reply({ embeds: [embed] });
+  // Get all quotes for pagination (filtered by user if specified)
+  const quoteeUid = user ? BigInt(user.id) : undefined;
+  const quotes = await getAllQuotes(serverUid, quoteeUid);
+
+  if (quotes.length === 0) {
+    await interaction.reply({ content: 'No quotes found.', ephemeral: true });
+    return;
+  }
+
+  // Start at a random index
+  let currentIndex = Math.floor(Math.random() * quotes.length);
+  const embed = await createQuoteEmbed(quotes[currentIndex], interaction);
+  const buttons = createPaginationButtons(currentIndex, quotes.length);
+
+  const response = await interaction.reply({
+    embeds: [embed],
+    components: [buttons],
+    fetchReply: true,
+  });
+
+  // Only create collector if there are multiple quotes
+  if (quotes.length <= 1) return;
+
+  const collector = response.createMessageComponentCollector({
+    componentType: ComponentType.Button,
+    time: PAGINATION_TIMEOUT,
+  });
+
+  collector.on('collect', async (buttonInteraction) => {
+    // Only allow the original user to navigate
+    if (buttonInteraction.user.id !== interaction.user.id) {
+      await buttonInteraction.reply({
+        content: 'Only the person who requested the quote can navigate.',
+        ephemeral: true,
+      });
+      return;
+    }
+
+    // Update the index based on which button was pressed
+    if (buttonInteraction.customId === 'quote_prev') {
+      currentIndex = currentIndex <= 0 ? quotes.length - 1 : currentIndex - 1;
+    } else if (buttonInteraction.customId === 'quote_next') {
+      currentIndex = currentIndex >= quotes.length - 1 ? 0 : currentIndex + 1;
+    }
+
+    const newEmbed = await createQuoteEmbed(quotes[currentIndex], interaction);
+    const newButtons = createPaginationButtons(currentIndex, quotes.length);
+
+    await buttonInteraction.update({
+      embeds: [newEmbed],
+      components: [newButtons],
+    });
+  });
+
+  collector.on('end', async () => {
+    // Disable buttons when collector times out
+    const disabledButtons = createPaginationButtons(currentIndex, quotes.length, true);
+    try {
+      await response.edit({ components: [disabledButtons] });
+    } catch {
+      // Message may have been deleted
+    }
+  });
 }
 
 /**
