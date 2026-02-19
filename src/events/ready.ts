@@ -15,7 +15,7 @@ const event: BotEvent<'ready'> = {
 
     // Set bot presence
     client.user?.setActivity({
-      name: '/help | Bot_Man',
+      name: '/info | Bot_Man',
       type: ActivityType.Listening,
     });
 
