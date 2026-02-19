@@ -51,8 +51,9 @@ async function handleChannelJoin(oldState: VoiceState, newState: VoiceState): Pr
     logger.debug(`User ${member.user.username} joined jump channel ${channel.name}`);
 
     // Create a new temporary voice channel
+    // Use displayName to get the server nickname, falling back to username
     const newChannel = await guild.channels.create({
-      name: `~${member.user.username}`,
+      name: `~${member.displayName}`,
       type: ChannelType.GuildVoice,
       parent: channel.parent ?? undefined,
       reason: 'Creating temporary voice channel',
